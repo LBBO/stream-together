@@ -11,21 +11,40 @@ let registerNewSession = async () => {
 let checkSession = async (sessionID) => {
   try {
     const response = await fetch(`${url}session/${sessionID}`)
-    if (response.status === 200) {
-      const json = await response.json()
-      console.log(json)
-    } else {
-      console.log('session not found')
-    }
+    return response.status === 200
   } catch (e) {
     console.error(e)
+    return false
   }
 }
 
-let doShit = async () => {
-  const uuid = await registerNewSession()
-  console.log(uuid)
+const switchToSession = (sessionID) => {
+  window.history.pushState('', '', `#${sessionID}`)
+}
 
-  await checkSession(uuid)
-  await checkSession('asdf')
+const getOrCreateSessionID = async () => {
+  let sessionID
+  const potentialSessionID = window.location.hash.substring(1)
+
+  if (potentialSessionID) {
+    const sessionExists = await checkSession(potentialSessionID)
+
+    if (sessionExists) {
+      sessionID = potentialSessionID
+    }
+  }
+
+  if (!sessionID) {
+    sessionID = await registerNewSession()
+  }
+
+  return sessionID
+}
+
+let doShit = async () => {
+  let sessionID = await getOrCreateSessionID()
+
+  await switchToSession(sessionID)
+
+  await checkSession(sessionID)
 }
