@@ -2,9 +2,11 @@ import express from 'express'
 import dotenv from 'dotenv'
 import { v4 as createUuid } from 'uuid'
 import morgan from 'morgan'
+import express_ws from 'express-ws'
 
 dotenv.config()
 const app = express()
+express_ws(app)
 app.use(express.json({
   inflate: false,
 }))
@@ -55,6 +57,24 @@ app.get('/session/:sessionID', (req, res) => {
   } else {
     session.ipAdresses.add(req.ip)
     res.send(session.data)
+  }
+})
+
+app.ws('/join', (ws) => {
+  ws.onmessage = (message) => {
+    try {
+      const messageObj = JSON.parse(message.data)
+
+      if (messageObj.type === 'joinSession') {
+        const sessionID = messageObj.sessionID
+        const session = sessions[sessionID]
+        console.log(session)
+
+        ws.send(JSON.stringify(session.data))
+      }
+    } catch (e) {
+      // Message is no JSON
+    }
   }
 })
 
