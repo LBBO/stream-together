@@ -31,10 +31,14 @@ const createNewSession = () => {
 }
 
 app.post('/createSession', (req, res) => {
-  const session = createNewSession()
+  if (Object.values(sessions).length < 50) {
+    const session = createNewSession()
 
-  res.status(201)
-  res.send(session)
+    res.status(201)
+    res.send(session)
+  } else {
+    res.sendStatus(500)
+  }
 })
 
 app.get('/session/:sessionID', (req, res) => {
