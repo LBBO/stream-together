@@ -19,11 +19,14 @@ app.get('/', (req, res) => {
 
 const sessions = {}
 
-const createNewSession = () => {
+const createNewSession = ({ ip }) => {
   const uuid = createUuid()
 
   const session = {
-    uuid,
+    ipAdresses: new Set([ip]),
+    data: {
+      uuid,
+    },
   }
   sessions[uuid] = session
 
@@ -32,10 +35,12 @@ const createNewSession = () => {
 
 app.post('/createSession', (req, res) => {
   if (Object.values(sessions).length < 50) {
-    const session = createNewSession()
+    const session = createNewSession({
+      ip: req.ip,
+    })
 
     res.status(201)
-    res.send(session)
+    res.send(session.data)
   } else {
     res.sendStatus(500)
   }
@@ -48,7 +53,8 @@ app.get('/session/:sessionID', (req, res) => {
   if (!session) {
     res.sendStatus(404)
   } else {
-    res.send(session)
+    session.ipAdresses.add(req.ip)
+    res.send(session.data)
   }
 })
 
