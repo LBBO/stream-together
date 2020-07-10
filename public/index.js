@@ -44,13 +44,24 @@ const getOrCreateSessionID = async () => {
 
 const setupSocket = (sessionID) => {
   const ws = new WebSocket(`${socketUrl}sessionManager/${sessionID}`)
-  ws.onopen = () => {
+
+  window.sendEvent = () => {
     const message = {
-      type: 'joinSession',
-      sessionID,
+      type: 'pauseLikeEvent',
+      data: {
+        event: {
+          foo: 'bar',
+          timestamp: Date.now(),
+        },
+      },
     }
     ws.send(JSON.stringify(message))
   }
+
+  ws.onmessage = (message) => {
+    console.log(message)
+  }
+
   return ws
 }
 

@@ -1,5 +1,6 @@
 import { WebsocketRequestHandler } from 'express-ws'
 import { SessionsObject } from '../Session'
+import { forwardEvent } from './forwardEvent'
 
 export const sessionManager = (sessions: SessionsObject): WebsocketRequestHandler => (ws, req) => {
   const clientIP = req.connection.remoteAddress
@@ -37,6 +38,18 @@ export const sessionManager = (sessions: SessionsObject): WebsocketRequestHandle
           const session = sessions[sessionID]
 
           ws.send(JSON.stringify(session.data))
+        }
+
+        switch (messageObj.type) {
+          case 'pauseLikeEvent':
+          case 'playLikeEvent':
+            forwardEvent(messageObj.data.event, ws, session)
+            break
+          default:
+            ws.send(JSON.stringify({
+              type: 'error',
+              message: `Unknown message type ${messageObj.type}`,
+            }))
         }
       }
     } catch (e) {
