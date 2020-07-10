@@ -1,8 +1,11 @@
 import express from 'express'
 import dotenv from 'dotenv'
-import { v4 as createUuid } from 'uuid'
 import morgan from 'morgan'
 import express_ws from 'express-ws'
+import { sessionManager } from './SessionManager/SessionManager'
+import { SessionsObject } from './Session'
+import { createSession } from './routes/createSession'
+import { checkSession } from './routes/checkSession'
 
 dotenv.config()
 const app = express_ws(express()).app
@@ -18,74 +21,12 @@ app.get('/', (req, res) => {
   })
 })
 
-type Session = {
-  ipAdresses: Set<string>,
-  data: {
-    uuid: string,
-  }
-}
+const sessions: SessionsObject = {}
 
-const sessions: {
-  [key: string]: Session,
-} = {}
+app.post('/createSession', createSession(sessions))
 
-const createNewSession = ({ ip }: { ip: string }) => {
-  const uuid = createUuid()
+app.get('/checkSession/:sessionID', checkSession(sessions))
 
-  const session: Session = {
-    ipAdresses: new Set([ip]),
-    data: {
-      uuid,
-    },
-  }
-  sessions[uuid] = session
-
-  return session
-}
-
-app.post('/createSession', (req, res) => {
-  if (Object.values(sessions).length < 50) {
-    const session = createNewSession({
-      ip: req.ip,
-    })
-
-    res.status(201)
-    res.send(session.data)
-  } else {
-    res.sendStatus(500)
-  }
-})
-
-app.get('/session/:sessionID', (req, res) => {
-  const sessionID = req.params.sessionID
-
-  const session = sessions[sessionID]
-  if (!session) {
-    res.sendStatus(404)
-  } else {
-    session.ipAdresses.add(req.ip)
-    res.send(session.data)
-  }
-})
-
-app.ws('/join', (ws) => {
-  ws.onmessage = (message) => {
-    try {
-      if (typeof message.data === 'string') {
-        const messageObj = JSON.parse(message.data)
-
-        if (messageObj.type === 'joinSession') {
-          const sessionID = messageObj.sessionID
-          const session = sessions[sessionID]
-          console.log(session)
-
-          ws.send(JSON.stringify(session.data))
-        }
-      }
-    } catch (e) {
-      // Message is no JSON
-    }
-  }
-})
+app.ws('/sessionManager', sessionManager(sessions))
 
 app.listen(process.env.PORT || 3000)

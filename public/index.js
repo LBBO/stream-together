@@ -11,7 +11,7 @@ let registerNewSession = async () => {
 
 let checkSession = async (sessionID) => {
   try {
-    const response = await fetch(`${url}session/${sessionID}`)
+    const response = await fetch(`${url}checkSession/${sessionID}`)
     return response.status === 200
   } catch (e) {
     console.error(e)
@@ -43,7 +43,7 @@ const getOrCreateSessionID = async () => {
 }
 
 const setupSocket = (sessionID) => {
-  const ws = new WebSocket(`${socketUrl}join`)
+  const ws = new WebSocket(`${socketUrl}sessionManager`)
   ws.onopen = () => {
     const message = {
       type: 'joinSession',
