@@ -118,3 +118,4 @@ dist
 
 # Webstorm
 .idea/*.iml
+public/video.mp4

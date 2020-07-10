@@ -42,24 +42,48 @@ const getOrCreateSessionID = async () => {
   return sessionID
 }
 
+const video = document.querySelector('video')
+
+const setupVideoEventHandlers = (webSocket) => {
+  const playLike = ['play']
+  const pauseLike = ['pause']
+
+  const registerEvent = (eventType, eventName) => {
+    video?.addEventListener(eventName, (event) => {
+      console.log(event)
+      webSocket.send(JSON.stringify({ type: eventType, data: { event } }))
+    })
+  }
+
+  playLike.forEach(eventName => {
+    registerEvent('playLikeEvent', eventName)
+  })
+
+  pauseLike.forEach(eventName => {
+    registerEvent('pauseLikeEvent', eventName)
+  })
+}
+
 const setupSocket = (sessionID) => {
   const ws = new WebSocket(`${socketUrl}sessionManager/${sessionID}`)
 
-  window.sendEvent = () => {
-    const message = {
-      type: 'pauseLikeEvent',
-      data: {
-        event: {
-          foo: 'bar',
-          timestamp: Date.now(),
-        },
-      },
-    }
-    ws.send(JSON.stringify(message))
-  }
+  setupVideoEventHandlers(ws)
 
   ws.onmessage = (message) => {
-    console.log(message)
+    const messageObj = JSON.parse(message.data)
+
+    switch (messageObj.type) {
+      case 'playLikeEvent':
+        video?.play()
+        console.log('play', messageObj)
+        break
+      case 'pauseLikeEvent':
+        video?.pause()
+        console.log('pause', messageObj)
+        break
+      default:
+        console.log(messageObj)
+    }
   }
 
   return ws
@@ -71,8 +95,7 @@ let doShit = async () => {
   await switchToSession(sessionID)
 
   await checkSession(sessionID)
-  const ws = setupSocket(sessionID)
-  ws.onmessage = console.log
+  setupSocket(sessionID)
 }
 
 doShit()
