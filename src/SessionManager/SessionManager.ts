@@ -43,8 +43,9 @@ export const sessionManager = (sessions: SessionsObject): WebsocketRequestHandle
         switch (messageObj.type) {
           case 'pauseLikeEvent':
           case 'playLikeEvent':
+          case 'seekLikeEvent':
             console.log(`socket event ${messageObj.type}`)
-            forwardEvent(messageObj.type, messageObj.data.event, ws, session)
+            forwardEvent(messageObj.type, messageObj.data, ws, session)
             break
           default:
             ws.send(JSON.stringify({

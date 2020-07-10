@@ -47,11 +47,22 @@ const video = document.querySelector('video')
 const setupVideoEventHandlers = (webSocket) => {
   const playLike = ['play']
   const pauseLike = ['pause']
+  const seekLike = ['seeked']
+
+  const skipEvents = [...playLike, ...pauseLike, ...seekLike].reduce((skipEvents, eventName) => ({
+    ...skipEvents,
+    [eventName]: false,
+  }), {})
 
   const registerEvent = (eventType, eventName) => {
-    video?.addEventListener(eventName, (event) => {
-      console.log(event)
-      webSocket.send(JSON.stringify({ type: eventType, data: { event } }))
+    video?.addEventListener(eventName, () => {
+      if (!skipEvents[eventName]) {
+        const videoTime = video.currentTime
+        webSocket.send(JSON.stringify({ type: eventType, data: { videoTime } }))
+      } else {
+        console.info(`Skipping ${eventName} event`)
+        skipEvents[eventName] = false
+      }
     })
   }
 
@@ -62,27 +73,44 @@ const setupVideoEventHandlers = (webSocket) => {
   pauseLike.forEach(eventName => {
     registerEvent('pauseLikeEvent', eventName)
   })
+
+  seekLike.forEach(eventName => {
+    registerEvent('seekLikeEvent', eventName)
+  })
+
+  return skipEvents
 }
 
 const setupSocket = (sessionID) => {
   const ws = new WebSocket(`${socketUrl}sessionManager/${sessionID}`)
 
-  setupVideoEventHandlers(ws)
+  const skipEvents = setupVideoEventHandlers(ws)
 
   ws.onmessage = (message) => {
     const messageObj = JSON.parse(message.data)
+    const videoTime = messageObj?.data?.videoTime
 
     switch (messageObj.type) {
       case 'playLikeEvent':
+        skipEvents.seeked = true
+        skipEvents.play = true
+        video.currentTime = videoTime
         video?.play()
-        console.log('play', messageObj)
+        console.info('play', messageObj)
         break
       case 'pauseLikeEvent':
+        skipEvents.seeked = true
+        skipEvents.pause = true
         video?.pause()
-        console.log('pause', messageObj)
+        video.currentTime = videoTime
+        console.info('pause', messageObj)
+        break
+      case 'seekLikeEvent':
+        skipEvents.seeked = true
+        video.currentTime = videoTime
         break
       default:
-        console.log(messageObj)
+        console.info(messageObj)
     }
   }
 
