@@ -5,8 +5,7 @@ import morgan from 'morgan'
 import express_ws from 'express-ws'
 
 dotenv.config()
-const app = express()
-express_ws(app)
+const app = express_ws(express()).app
 app.use(express.json({
   inflate: false,
 }))
@@ -19,12 +18,21 @@ app.get('/', (req, res) => {
   })
 })
 
-const sessions = {}
+type Session = {
+  ipAdresses: Set<string>,
+  data: {
+    uuid: string,
+  }
+}
 
-const createNewSession = ({ ip }) => {
+const sessions: {
+  [key: string]: Session,
+} = {}
+
+const createNewSession = ({ ip }: { ip: string }) => {
   const uuid = createUuid()
 
-  const session = {
+  const session: Session = {
     ipAdresses: new Set([ip]),
     data: {
       uuid,
@@ -63,14 +71,16 @@ app.get('/session/:sessionID', (req, res) => {
 app.ws('/join', (ws) => {
   ws.onmessage = (message) => {
     try {
-      const messageObj = JSON.parse(message.data)
+      if (typeof message.data === 'string') {
+        const messageObj = JSON.parse(message.data)
 
-      if (messageObj.type === 'joinSession') {
-        const sessionID = messageObj.sessionID
-        const session = sessions[sessionID]
-        console.log(session)
+        if (messageObj.type === 'joinSession') {
+          const sessionID = messageObj.sessionID
+          const session = sessions[sessionID]
+          console.log(session)
 
-        ws.send(JSON.stringify(session.data))
+          ws.send(JSON.stringify(session.data))
+        }
       }
     } catch (e) {
       // Message is no JSON

@@ -4,8 +4,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node server.mjs",
-    "dev": "nodemon server.mjs"
+    "start": "node --inspect=5858 -r ts-node/register ./src/index.ts",
+    "dev": "nodemon",
+    "build": "tsc"
   },
   "repository": {
     "type": "git",
@@ -27,6 +28,25 @@
     "uuid": "^8.2.0"
   },
   "devDependencies": {
-    "@types/morgan": "^1.9.1"
+    "@types/express-ws": "^3.0.0",
+    "@types/morgan": "^1.9.1",
+    "@types/node": "^14.0.22",
+    "@types/uuid": "^8.0.0",
+    "nodemon": "^2.0.4",
+    "ts-node": "^8.10.2",
+    "typescript": "^3.9.6"
+  },
+  "nodemonConfig": {
+    "ignore": [
+      "**/*.test.ts",
+      "**/*.spec.ts",
+      ".git",
+      "node_modules"
+    ],
+    "watch": [
+      "src"
+    ],
+    "exec": "npm start",
+    "ext": "ts"
   }
 }
