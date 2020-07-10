@@ -27,6 +27,6 @@ app.post('/createSession', createSession(sessions))
 
 app.get('/checkSession/:sessionID', checkSession(sessions))
 
-app.ws('/sessionManager', sessionManager(sessions))
+app.ws('/sessionManager/:sessionID', sessionManager(sessions))
 
 app.listen(process.env.PORT || 3000)

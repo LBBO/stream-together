@@ -43,7 +43,7 @@ const getOrCreateSessionID = async () => {
 }
 
 const setupSocket = (sessionID) => {
-  const ws = new WebSocket(`${socketUrl}sessionManager`)
+  const ws = new WebSocket(`${socketUrl}sessionManager/${sessionID}`)
   ws.onopen = () => {
     const message = {
       type: 'joinSession',

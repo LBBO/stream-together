@@ -1,7 +1,9 @@
 import { v4 as createUuid } from 'uuid'
+import * as ws from 'ws'
 
 export type Session = {
-  ipAdresses: Set<string>,
+  ipAddresses: Set<string>,
+  webSockets: Set<ws>,
   data: {
     uuid: string,
   }
@@ -15,7 +17,8 @@ export const createNewSession = ({ ip }: { ip: string }) => {
   const uuid = createUuid()
 
   const session: Session = {
-    ipAdresses: new Set([ip]),
+    ipAddresses: new Set([ip]),
+    webSockets: new Set(),
     data: {
       uuid,
     },
