@@ -1,0 +1,16 @@
+{
+  "name": "disney-dogether",
+  "version": "1.0.0",
+  "author": "Michael David Kuckuk",
+  "manifest_version": 2,
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "dist/contentScript/index.js"
+      ]
+    }
+  ]
+}
