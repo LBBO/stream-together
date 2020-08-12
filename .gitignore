@@ -119,3 +119,7 @@ dist
 # Webstorm
 .idea/*.iml
 public/video.mp4
+
+# From vitejs
+.DS_Store
+*.local
