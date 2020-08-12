@@ -1,5 +1,5 @@
-const url = 'http://localhost:3000/'
-const socketUrl = 'ws://localhost:3000/'
+const url = location.origin + '/'
+const socketUrl = `wss://${location.host}/`
 
 let registerNewSession = async () => {
   const response = await fetch(`${url}createSession`, {
@@ -45,8 +45,8 @@ const getOrCreateSessionID = async () => {
 const video = document.querySelector('video')
 
 const setupVideoEventHandlers = (webSocket) => {
-  const playLike = ['play']
-  const pauseLike = ['pause']
+  const playLike = ['play', 'playing']
+  const pauseLike = ['pause', 'waiting']
   const seekLike = ['seeked']
 
   const skipEvents = [...playLike, ...pauseLike, ...seekLike].reduce((skipEvents, eventName) => ({
