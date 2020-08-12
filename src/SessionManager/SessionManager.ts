@@ -7,6 +7,10 @@ export const sessionManager = (sessions: SessionsObject): WebsocketRequestHandle
   const sessionID = req.params.sessionID
   const session = sessions[sessionID]
 
+  const intervalID = setInterval(() => {
+    ws.send(JSON.stringify({ type: 'ping' }))
+  }, 45000)
+
   if (session && clientIP) {
     session.ipAddresses.add(clientIP)
     session.webSockets.add(ws)
@@ -16,6 +20,8 @@ export const sessionManager = (sessions: SessionsObject): WebsocketRequestHandle
   console.log(`Socket opened from ${clientIP}`)
 
   ws.onclose = () => {
+    clearInterval(intervalID)
+
     if (session && clientIP) {
       session.ipAddresses.delete(clientIP)
       session.webSockets.delete(ws)
