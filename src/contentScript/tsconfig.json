@@ -2,6 +2,10 @@
   "extends": "../../tsconfig.json",
   "compilerOptions": {
     "watch": true,
-    "outDir": "../../dist/contentScript"
-  }
+    "module": "System",
+    "outFile": "../../dist/contentScript.js"
+  },
+  "include": [
+    "**/*.ts"
+  ]
 }

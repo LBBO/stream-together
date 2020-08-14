@@ -1,7 +1,8 @@
-const url = location.origin + '/'
-const socketUrl = `wss://${location.host}/`
+const serverUrl = 'localhost:3000'
+const url = `https://${serverUrl}/`
+const socketUrl = `wss://${serverUrl}/`
 
-let registerNewSession = async () => {
+const registerNewSession = async () => {
   const response = await fetch(`${url}createSession`, {
     method: 'POST',
   })
@@ -9,7 +10,7 @@ let registerNewSession = async () => {
   return json.uuid
 }
 
-let checkSession = async (sessionID: string) => {
+const checkSession = async (sessionID: string) => {
   try {
     const response = await fetch(`${url}checkSession/${sessionID}`)
     return response.status === 200
@@ -42,9 +43,7 @@ const getOrCreateSessionID = async () => {
   return sessionID
 }
 
-const video = document.querySelector('video')
-
-const setupVideoEventHandlers = (webSocket: WebSocket) => {
+const setupVideoEventHandlers = (webSocket: WebSocket, video: HTMLVideoElement) => {
   const playLike = ['play', 'playing'] as Array<keyof HTMLMediaElementEventMap>
   const pauseLike = ['pause', 'waiting'] as Array<keyof HTMLMediaElementEventMap>
   const seekLike = ['seeked'] as Array<keyof HTMLMediaElementEventMap>
@@ -83,10 +82,10 @@ const setupVideoEventHandlers = (webSocket: WebSocket) => {
   return skipEvents
 }
 
-const setupSocket = (sessionID: string) => {
+const setupSocket = (sessionID: string, video: HTMLVideoElement) => {
   const ws = new WebSocket(`${socketUrl}sessionManager/${sessionID}`)
 
-  const skipEvents = setupVideoEventHandlers(ws)
+  const skipEvents = setupVideoEventHandlers(ws, video)
 
   ws.onmessage = (message) => {
     const messageObj = JSON.parse(message.data)
@@ -123,13 +122,16 @@ const setupSocket = (sessionID: string) => {
   return ws
 }
 
-let doShit = async () => {
-  let sessionID = await getOrCreateSessionID()
+const initializePlugin = async () => {
+  const videoElements = document.querySelectorAll('video')
 
-  await switchToSession(sessionID)
+  if (videoElements.length >= 1) {
+    const chosenVideo = videoElements[0]
+    const sessionID = await getOrCreateSessionID()
+    await switchToSession(sessionID)
 
-  await checkSession(sessionID)
-  setupSocket(sessionID)
+    setupSocket(sessionID, chosenVideo)
+  }
 }
 
-doShit()
+initializePlugin().catch(console.error)
