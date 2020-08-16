@@ -13,7 +13,7 @@ app.use(express.json({
   inflate: false,
 }))
 app.use(express.static('./public'))
-app.use(morgan('dev'))
+app.use(morgan('common'))
 
 app.get('/', (req, res) => {
   res.send({
@@ -29,4 +29,12 @@ app.get('/checkSession/:sessionID', checkSession(sessions))
 
 app.ws('/sessionManager/:sessionID', sessionManager(sessions))
 
-app.listen(process.env.PORT || 3000)
+const server = app.listen(process.env.PORT || 3000)
+
+process.on('uncaughtException', () => {
+  server.close()
+})
+
+process.on('SIGTERM', () => {
+  server.close()
+})

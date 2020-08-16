@@ -4,7 +4,7 @@
   "scripts": {
     "devClient": "vite",
     "buildClient": "vite build",
-    "startServer": "node --inspect=5858 -r ts-node/register ./src/index.ts",
+    "startServer": "node -r ts-node/register ./src/server/index.ts",
     "devServer": "nodemon",
     "devContentScript": "npx tsc --project src/plugin --inlineSourceMap --inlineSources"
   },
@@ -41,7 +41,7 @@
     "watch": [
       "src"
     ],
-    "exec": "npm start",
+    "exec": "npm run startServer",
     "ext": "ts"
   }
 }
