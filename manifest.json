@@ -21,7 +21,8 @@
   },
   "permissions": [
     "http://*/",
+    "ws://*/",
     "https://*/",
-    "http://localhost:3000/*"
+    "wss://*/"
   ]
 }

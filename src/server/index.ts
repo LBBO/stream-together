@@ -29,12 +29,4 @@ app.get('/checkSession/:sessionID', checkSession(sessions))
 
 app.ws('/sessionManager/:sessionID', sessionManager(sessions))
 
-const server = app.listen(process.env.PORT || 3000)
-
-process.on('uncaughtException', () => {
-  server.close()
-})
-
-process.on('SIGTERM', () => {
-  server.close()
-})
+app.listen(process.env.PORT || 3000, () => console.info(`Server running on port ${process.env.PORT}`))
