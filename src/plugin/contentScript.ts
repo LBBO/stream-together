@@ -1,3 +1,5 @@
+import Port = chrome.runtime.Port
+
 const asyncSendMessage = (message: any) => {
   return new Promise<any>((res) => {
     chrome.runtime.sendMessage(message, res)
@@ -42,7 +44,7 @@ const getOrCreateSessionID = async () => {
   return sessionID
 }
 
-const setupVideoEventHandlers = (webSocket: WebSocket, video: HTMLVideoElement) => {
+const setupVideoEventHandlers = (port: Port, video: HTMLVideoElement) => {
   const playLike = ['play', 'playing'] as Array<keyof HTMLMediaElementEventMap>
   const pauseLike = ['pause', 'waiting'] as Array<keyof HTMLMediaElementEventMap>
   const seekLike = ['seeked'] as Array<keyof HTMLMediaElementEventMap>
@@ -58,7 +60,7 @@ const setupVideoEventHandlers = (webSocket: WebSocket, video: HTMLVideoElement) 
     video?.addEventListener(eventName, () => {
       if (!skipEvents[eventName]) {
         const videoTime = video.currentTime
-        webSocket.send(JSON.stringify({ type: eventType, data: { videoTime } }))
+        port.postMessage({ type: eventType, data: { videoTime } })
       } else {
         console.info(`Skipping ${eventName} event`)
         skipEvents[eventName] = false
@@ -82,47 +84,58 @@ const setupVideoEventHandlers = (webSocket: WebSocket, video: HTMLVideoElement) 
 }
 
 const sendSetupSocketMessage = async (sessionID: string, video: HTMLVideoElement) => {
-  const ws = await asyncSendMessage({
+  chrome.runtime.onConnect.addListener((port) => {
+    if (port.name === 'websocket') {
+      console.log('Connection to background script web socket established')
+
+      const skipEvents = setupVideoEventHandlers(port, video)
+
+      port.onMessage.addListener((message) => {
+        const videoTime = message?.data?.videoTime
+
+        if (video) {
+          switch (message.type) {
+            case 'playLikeEvent':
+              skipEvents.seeked = true
+              skipEvents.play = true
+              video.currentTime = videoTime
+              video?.play()
+              console.info('play', message)
+              break
+            case 'pauseLikeEvent':
+              skipEvents.seeked = true
+              skipEvents.pause = true
+              video?.pause()
+              video.currentTime = videoTime
+              console.info('pause', message)
+              break
+            case 'seekLikeEvent':
+              skipEvents.seeked = true
+              video.currentTime = videoTime
+              break
+            default:
+              console.info(message)
+          }
+        } else {
+          console.warn('no video found!')
+        }
+
+      })
+    }
+  })
+
+  const wasSuccessful = await asyncSendMessage({
     query: 'setupSocket',
     sessionID,
-  }) as WebSocket
-  console.log('socket:', ws)
+  })
 
-  const skipEvents = setupVideoEventHandlers(ws, video)
-
-  ws.onmessage = (message) => {
-    const messageObj = JSON.parse(message.data)
-    const videoTime = messageObj?.data?.videoTime
-
-    if (video) {
-      switch (messageObj.type) {
-        case 'playLikeEvent':
-          skipEvents.seeked = true
-          skipEvents.play = true
-          video.currentTime = videoTime
-          video?.play()
-          console.info('play', messageObj)
-          break
-        case 'pauseLikeEvent':
-          skipEvents.seeked = true
-          skipEvents.pause = true
-          video?.pause()
-          video.currentTime = videoTime
-          console.info('pause', messageObj)
-          break
-        case 'seekLikeEvent':
-          skipEvents.seeked = true
-          video.currentTime = videoTime
-          break
-        default:
-          console.info(messageObj)
-      }
-    } else {
-      console.warn('no video found!')
-    }
+  if (wasSuccessful.result) {
+    console.log('WS successfully setup!')
+  } else {
+    console.error(wasSuccessful)
   }
 
-  return ws
+  return wasSuccessful
 }
 
 const initializePlugin = async () => {

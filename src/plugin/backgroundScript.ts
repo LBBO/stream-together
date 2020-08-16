@@ -21,7 +21,30 @@ const checkSession = async (sessionID: string) => {
   return response.status === 200
 }
 
-const setupSocket = (sessionID: string) => new WebSocket(`${socketUrl}sessionManager/${sessionID}`)
+const setupSocket = (sessionID: string) => {
+  const ws = new WebSocket(`${socketUrl}sessionManager/${sessionID}`)
+  const port = chrome.runtime.connect({ name: 'websocket' })
+
+  ws.onmessage = (message) => {
+    const messageObj = JSON.parse(message.data)
+    port.postMessage(messageObj)
+  }
+
+  port.onMessage.addListener((message) => {
+    const messageJSON = JSON.stringify(message)
+    ws.send(messageJSON)
+  })
+
+  ws.onclose = () => {
+    port.disconnect()
+  }
+
+  port.onDisconnect.addListener(() => {
+    ws.close()
+  })
+
+  return { result: true }
+}
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   const handleMessage = async () => {
@@ -35,7 +58,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         sendResponse(await checkSession(message.sessionID))
         break
       case 'setupSocket':
-        sendResponse(setupSocket(message.search))
+        sendResponse(setupSocket(message.sessionID))
         break
       default:
         sendResponse({ error: 'Unknown Query' })
