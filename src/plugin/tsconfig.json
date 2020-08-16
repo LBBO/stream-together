@@ -3,7 +3,8 @@
   "compilerOptions": {
     "watch": true,
     "module": "System",
-    "outFile": "../../dist/contentScript.js"
+    "outDir": "../../dist/",
+    "sourceMap": false
   },
   "include": [
     "**/*.ts"

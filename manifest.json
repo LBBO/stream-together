@@ -12,5 +12,16 @@
         "dist/contentScript.js"
       ]
     }
+  ],
+  "background": {
+    "scripts": [
+      "dist/backgroundScript.js"
+    ],
+    "persistent": false
+  },
+  "permissions": [
+    "http://*/",
+    "https://*/",
+    "http://localhost:3000/*"
   ]
 }

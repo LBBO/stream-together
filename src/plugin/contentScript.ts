@@ -1,23 +1,22 @@
-const serverUrl = 'localhost:3000'
-const url = `https://${serverUrl}/`
-const socketUrl = `wss://${serverUrl}/`
-
-const registerNewSession = async () => {
-  const response = await fetch(`${url}createSession`, {
-    method: 'POST',
+const asyncSendMessage = (message: any) => {
+  return new Promise<any>((res) => {
+    chrome.runtime.sendMessage(message, res)
   })
-  const json = await response.json()
-  return json.uuid
 }
 
-const checkSession = async (sessionID: string) => {
-  try {
-    const response = await fetch(`${url}checkSession/${sessionID}`)
-    return response.status === 200
-  } catch (e) {
-    console.error(e)
-    return false
-  }
+const registerNewSession = async (): Promise<string> => {
+  const { result: uuid } = await asyncSendMessage({
+    query: 'createSession',
+  })
+
+  return uuid
+}
+
+const sendCheckSessionMessage = async (sessionID: string): Promise<boolean> => {
+  return await asyncSendMessage({
+    query: 'checkSession',
+    sessionID,
+  })
 }
 
 const switchToSession = (sessionID: string) => {
@@ -29,7 +28,7 @@ const getOrCreateSessionID = async () => {
   const potentialSessionID = window.location.hash.substring(1)
 
   if (potentialSessionID) {
-    const sessionExists = await checkSession(potentialSessionID)
+    const sessionExists = await sendCheckSessionMessage(potentialSessionID)
 
     if (sessionExists) {
       sessionID = potentialSessionID
@@ -82,8 +81,12 @@ const setupVideoEventHandlers = (webSocket: WebSocket, video: HTMLVideoElement) 
   return skipEvents
 }
 
-const setupSocket = (sessionID: string, video: HTMLVideoElement) => {
-  const ws = new WebSocket(`${socketUrl}sessionManager/${sessionID}`)
+const sendSetupSocketMessage = async (sessionID: string, video: HTMLVideoElement) => {
+  const ws = await asyncSendMessage({
+    query: 'setupSocket',
+    sessionID,
+  }) as WebSocket
+  console.log('socket:', ws)
 
   const skipEvents = setupVideoEventHandlers(ws, video)
 
@@ -126,11 +129,12 @@ const initializePlugin = async () => {
   const videoElements = document.querySelectorAll('video')
 
   if (videoElements.length >= 1) {
+    console.log('setting up plugin')
     const chosenVideo = videoElements[0]
     const sessionID = await getOrCreateSessionID()
     await switchToSession(sessionID)
 
-    setupSocket(sessionID, chosenVideo)
+    await sendSetupSocketMessage(sessionID, chosenVideo)
   }
 }
 
