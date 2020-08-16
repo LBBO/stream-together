@@ -39,7 +39,7 @@ npm test
 
 Contributions, issues and feature requests are welcome!
 
-Feel free to check [issues page](https://github.com/LBBO/disney-together/issues). 
+Feel free to check [issues page](https://github.com/LBBO/stream-together/issues). 
 
 ## Show your support
 
