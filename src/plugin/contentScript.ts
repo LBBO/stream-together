@@ -72,7 +72,7 @@ const setupVideoEventHandlers = (port: Port, video: HTMLVideoElement) => {
   ), {} as { [key in keyof HTMLMediaElementEventMap]: boolean })
 
   const registerEvent = (eventType: string, eventName: keyof typeof skipEvents) => {
-    video?.addEventListener(eventName, () => {
+    const listener = () => {
       if (!skipEvents[eventName]) {
         const videoTime = video.currentTime
         port.postMessage({
@@ -86,22 +86,29 @@ const setupVideoEventHandlers = (port: Port, video: HTMLVideoElement) => {
         console.info(`Skipping ${eventName} event`)
         skipEvents[eventName] = false
       }
-    })
+    }
+    video?.addEventListener(eventName, listener)
+
+    return () => video?.removeEventListener(eventName, listener)
   }
 
-  playLike.forEach(eventName => {
-    registerEvent('playLikeEvent', eventName)
-  })
+  const playEventRemovers = playLike.map(eventName =>
+    registerEvent('playLikeEvent', eventName),
+  )
 
-  pauseLike.forEach(eventName => {
-    registerEvent('pauseLikeEvent', eventName)
-  })
+  const pauseEventRemovers = pauseLike.map(eventName =>
+    registerEvent('pauseLikeEvent', eventName),
+  )
 
-  seekLike.forEach(eventName => {
-    registerEvent('seekLikeEvent', eventName)
-  })
+  const seekEventRemovers = seekLike.map(eventName =>
+    registerEvent('seekLikeEvent', eventName),
+  )
 
-  return skipEvents
+  const removeEventListeners = () => {
+    [...playEventRemovers, ...pauseEventRemovers, ...seekEventRemovers].forEach(remover => remover())
+  }
+
+  return { skipEvents, removeEventListeners }
 }
 
 const sendSetupSocketMessage = async (sessionID: string, video: HTMLVideoElement) => {
@@ -112,7 +119,12 @@ const sendSetupSocketMessage = async (sessionID: string, video: HTMLVideoElement
     sessionID,
   })
 
-  const skipEvents = setupVideoEventHandlers(port, video)
+  const { skipEvents, removeEventListeners } = setupVideoEventHandlers(port, video)
+
+  port.onDisconnect.addListener(() => {
+    console.log('Port disconnected; removing event listeners')
+    removeEventListeners()
+  })
 
   port.onMessage.addListener((message) => {
     const videoTime = message?.data?.videoTime
