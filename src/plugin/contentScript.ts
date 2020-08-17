@@ -60,8 +60,8 @@ const getOrCreateSessionID = async () => {
 }
 
 const setupVideoEventHandlers = (port: Port, video: HTMLVideoElement) => {
-  const playLike = ['play', 'playing'] as Array<keyof HTMLMediaElementEventMap>
-  const pauseLike = ['pause', 'waiting'] as Array<keyof HTMLMediaElementEventMap>
+  const playLike = ['play'] as Array<keyof HTMLMediaElementEventMap>
+  const pauseLike = ['pause'] as Array<keyof HTMLMediaElementEventMap>
   const seekLike = ['seeked'] as Array<keyof HTMLMediaElementEventMap>
 
   const skipEvents = [...playLike, ...pauseLike, ...seekLike].reduce((skipEvents, eventName) => (
@@ -126,34 +126,41 @@ const sendSetupSocketMessage = async (sessionID: string, video: HTMLVideoElement
     removeEventListeners()
   })
 
+  let lastEventTime = Date.now()
+  const coolDown = 300
   port.onMessage.addListener((message) => {
-    const videoTime = message?.data?.videoTime
+    if (Date.now() >= lastEventTime + coolDown) {
+      lastEventTime = Date.now()
+      const videoTime = message?.data?.videoTime
 
-    if (video) {
-      switch (message.type) {
-        case 'playLikeEvent':
-          skipEvents.seeked = true
-          skipEvents.play = true
-          video.currentTime = videoTime
-          video?.play()
-          console.info('play', message)
-          break
-        case 'pauseLikeEvent':
-          skipEvents.seeked = true
-          skipEvents.pause = true
-          video?.pause()
-          video.currentTime = videoTime
-          console.info('pause', message)
-          break
-        case 'seekLikeEvent':
-          skipEvents.seeked = true
-          video.currentTime = videoTime
-          break
-        default:
-          console.info(message)
+      if (video) {
+        switch (message.type) {
+          case 'playLikeEvent':
+            skipEvents.seeked = true
+            skipEvents.play = true
+            video.currentTime = videoTime
+            video.play()
+            console.info('play', message)
+            break
+          case 'pauseLikeEvent':
+            skipEvents.seeked = true
+            skipEvents.pause = true
+            video.pause()
+            video.currentTime = videoTime
+            console.info('pause', message)
+            break
+          case 'seekLikeEvent':
+            skipEvents.seeked = true
+            video.currentTime = videoTime
+            break
+          default:
+            console.info(message)
+        }
+      } else {
+        console.warn('no video found!')
       }
     } else {
-      console.warn('no video found!')
+      console.log('Event blocked by cool-down')
     }
   })
 }
