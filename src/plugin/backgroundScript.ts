@@ -48,6 +48,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
 chrome.runtime.onConnect.addListener(port => {
   if (port.name === 'stream-together') {
+    console.log('Connection established', port)
+
     const socketRef: { current?: WebSocket } = {
       current: undefined,
     }
@@ -60,20 +62,25 @@ chrome.runtime.onConnect.addListener(port => {
       const ws = new WebSocket(`${socketUrl}sessionManager/${sessionID}`)
       socketRef.current = ws
 
+      ws.onopen = () => {
+        console.log('WebSocket opened')
+      }
+
       ws.onmessage = (message) => {
+        console.log('WebSocket message', message)
         const messageObj = JSON.parse(message.data)
         port.postMessage(messageObj)
       }
 
       ws.onclose = () => {
+        console.log('WebSocket closed, closing port')
         port.disconnect()
       }
     }
 
-    const port = chrome.runtime.connect({ name: 'websocket' })
-
     port.onMessage.addListener((message) => {
       if (message.query === 'setupSocket') {
+        console.log('Setting up WebSocket')
         setupSocket(message.sessionID)
       } else if (message.query === 'videoEvent') {
         const messageJSON = JSON.stringify(message.payload)
@@ -82,6 +89,7 @@ chrome.runtime.onConnect.addListener(port => {
     })
 
     port.onDisconnect.addListener(() => {
+      console.log('Port disconnected, closing WebSocket')
       socketRef.current?.close()
     })
   }
