@@ -1,17 +1,32 @@
 import Port = chrome.runtime.Port
 
 const asyncSendMessage = (message: any) => {
-  return new Promise<any>((res) => {
-    chrome.runtime.sendMessage(message, res)
+  return new Promise<any>((resolve, reject) => {
+    chrome.runtime.sendMessage(message, (result) => {
+      if (result.error) {
+        reject(new Error('An error occurred in the background script:\n' + result.error.stack))
+      } else {
+        resolve(result)
+      }
+    })
   })
 }
 
 const registerNewSession = async (): Promise<string> => {
-  const { result: uuid } = await asyncSendMessage({
-    query: 'createSession',
-  })
+  try {
+    const { result: uuid } = await asyncSendMessage({
+      query: 'createSession',
+    })
 
-  return uuid
+    return uuid
+  } catch (e) {
+    if (e.message.includes('Failed to fetch')) {
+      throw new Error('Failed to register new session because background fetch failed. Perhaps ' +
+        'the server is offline?')
+    } else {
+      throw e
+    }
+  }
 }
 
 const sendCheckSessionMessage = async (sessionID: string): Promise<boolean> => {

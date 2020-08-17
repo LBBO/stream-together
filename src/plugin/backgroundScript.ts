@@ -3,16 +3,19 @@ const url = `http://${serverUrl}/`
 const socketUrl = `ws://${serverUrl}/`
 
 const createSession = async () => {
-  const response = await fetch(`${url}createSession`, {
-    method: 'POST',
-  })
-
   try {
+    const response = await fetch(`${url}createSession`, {
+      method: 'POST',
+    })
     const json = await response.json()
     return { result: json.uuid }
   } catch (e) {
-    console.log(e, response)
-    throw e
+    return {
+      error: {
+        message: e.message,
+        stack: e.stack,
+      },
+    }
   }
 }
 
