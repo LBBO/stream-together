@@ -30,7 +30,7 @@ npm run devContentScript
 This will create a `./dist` folder with the actual plugin. Open up
 [Chrome's extensions page](chrome:///extensions) and add an unpacked
 extension.
-Choose `./dist` as the source folder, and you should be good to go!
+Choose this project's root folder, and you should be good to go!
 
 ## 🚀 Usage
 To run the server locally, run
