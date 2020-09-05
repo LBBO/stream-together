@@ -8,7 +8,12 @@ export const sessionManager = (sessions: SessionsObject): WebsocketRequestHandle
   const session = sessions[sessionID]
 
   const intervalID = setInterval(() => {
-    ws.send(JSON.stringify({ type: 'ping' }))
+    // Only send ping if socked hasn't closed in the mean time
+    if (ws.readyState === ws.OPEN) {
+      ws.send(JSON.stringify({ type: 'ping' }))
+    } else {
+      clearInterval(intervalID)
+    }
   }, 45000)
 
   if (session && clientIP) {
