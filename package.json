@@ -2,6 +2,7 @@
   "name": "stream-together",
   "version": "1.0.0",
   "scripts": {
+    "start": "npm run startServer",
     "devClient": "vite",
     "buildClient": "vite build",
     "startServer": "ts-node ./src/server/index.ts",
