@@ -4,8 +4,8 @@
   "scripts": {
     "devClient": "vite",
     "buildClient": "vite build",
-    "startServer": "node -r ts-node/register ./src/server/index.ts",
-    "devServer": "nodemon",
+    "startServer": "ts-node ./src/server/index.ts",
+    "devServer": "nodemon startServer",
     "devContentScript": "npx tsc --project src/plugin --inlineSourceMap --inlineSources"
   },
   "dependencies": {
@@ -13,6 +13,7 @@
     "express": "^4.17.1",
     "express-ws": "^4.0.0",
     "morgan": "^1.10.0",
+    "ts-node": "^8.10.2",
     "uuid": "^8.2.0",
     "vue": "^3.0.0-rc.1",
     "ws": "^7.3.1"
@@ -27,7 +28,6 @@
     "@types/ws": "^7.2.6",
     "@vue/compiler-sfc": "^3.0.0-rc.1",
     "nodemon": "^2.0.4",
-    "ts-node": "^8.10.2",
     "typescript": "^3.9.6",
     "vite": "^1.0.0-rc.1"
   },
