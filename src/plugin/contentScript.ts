@@ -1,5 +1,5 @@
 import Port = chrome.runtime.Port
-import { eventCoolDown } from './config'
+import { acceptableTimeDifferenceBetweenClientsInMS, eventCoolDown } from './config'
 
 let lastEventTime = Date.now()
 
@@ -79,6 +79,7 @@ const setupVideoEventHandlers = (port: Port, video: HTMLVideoElement) => {
   const registerEvent = (eventType: string, eventName: keyof typeof skipEvents) => {
     const listener = () => {
       if (!skipEvents[eventName]) {
+        console.log(`Sending ${eventName} event`)
         const videoTime = video.currentTime
         port.postMessage({
           query: 'videoEvent',
@@ -141,34 +142,48 @@ const pause = (video: HTMLVideoElement) => {
   }
 }
 
-const onForeignVideoEvent = (video: HTMLVideoElement, skipEvents: SkipEvents, message: any) => {
+const setNewVideoTimeIfNecessary = (video: HTMLVideoElement, newVideoTime?: number) => {
+  if (
+    typeof newVideoTime === 'number' &&
+    Math.abs(video.currentTime - newVideoTime) > acceptableTimeDifferenceBetweenClientsInMS
+  ) {
+    video.currentTime = newVideoTime
+  }
+}
+
+const skipEvents = (skipEvents: SkipEvents, ...eventNames: Array<keyof SkipEvents>): void => {
+  const keys = Object.keys(skipEvents) as Array<keyof SkipEvents>
+  keys.forEach(key => {
+    skipEvents[key] = false
+  })
+
+  eventNames.forEach(eventName => {
+    skipEvents[eventName] = true
+  })
+}
+
+const onForeignVideoEvent = (video: HTMLVideoElement, shouldSkipEvents: SkipEvents, message: any) => {
   if (Date.now() >= lastEventTime + eventCoolDown || true) {
     lastEventTime = Date.now()
-    const videoTime = message?.data?.videoTime
+    const videoTime: number | undefined = message?.data?.videoTime
 
     if (video) {
       switch (message.type) {
         case 'playLikeEvent':
-          skipEvents.seeked = true
-          skipEvents.play = true
-          skipEvents.pause = false
-          video.currentTime = videoTime
+          skipEvents(shouldSkipEvents, 'seeked', 'play')
+          setNewVideoTimeIfNecessary(video, videoTime)
           play(video)
           console.info('play', message)
           break
         case 'pauseLikeEvent':
-          skipEvents.seeked = true
-          skipEvents.pause = true
-          skipEvents.play = false
+          skipEvents(shouldSkipEvents, 'seeked', 'pause')
+          setNewVideoTimeIfNecessary(video, videoTime)
           pause(video)
-          video.currentTime = videoTime
           console.info('pause', message)
           break
         case 'seekLikeEvent':
-          skipEvents.seeked = true
-          skipEvents.pause = false
-          skipEvents.play = false
-          video.currentTime = videoTime
+          skipEvents(shouldSkipEvents, 'seeked')
+          setNewVideoTimeIfNecessary(video, videoTime)
           console.info('seek', message)
           break
         default:
