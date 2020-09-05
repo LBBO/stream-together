@@ -1,4 +1,7 @@
 import Port = chrome.runtime.Port
+import { eventCoolDown } from './config'
+
+let lastEventTime = Date.now()
 
 const asyncSendMessage = (message: any) => {
   return new Promise<any>((resolve, reject) => {
@@ -59,6 +62,8 @@ const getOrCreateSessionID = async () => {
   return sessionID
 }
 
+type SkipEvents = { [key in keyof HTMLMediaElementEventMap]: boolean }
+
 const setupVideoEventHandlers = (port: Port, video: HTMLVideoElement) => {
   const playLike = ['play'] as Array<keyof HTMLMediaElementEventMap>
   const pauseLike = ['pause'] as Array<keyof HTMLMediaElementEventMap>
@@ -69,7 +74,7 @@ const setupVideoEventHandlers = (port: Port, video: HTMLVideoElement) => {
       ...skipEvents,
       [eventName]: false,
     }
-  ), {} as { [key in keyof HTMLMediaElementEventMap]: boolean })
+  ), {} as SkipEvents)
 
   const registerEvent = (eventType: string, eventName: keyof typeof skipEvents) => {
     const listener = () => {
@@ -111,6 +116,73 @@ const setupVideoEventHandlers = (port: Port, video: HTMLVideoElement) => {
   return { skipEvents, removeEventListeners }
 }
 
+const getDisneyPlusPlayPauseElement = () => document.querySelector<HTMLButtonElement>(
+  'div > div > div.controls__footer.display-flex > div.controls__footer__wrapper.display-flex >' +
+  ' div.controls__center > button.control-icon-btn.play-icon.play-pause-icon',
+)
+
+const play = (video: HTMLVideoElement) => {
+  console.log('playing')
+  const disneyPlusPlayPauseButton = getDisneyPlusPlayPauseElement()
+  if (disneyPlusPlayPauseButton) {
+    disneyPlusPlayPauseButton.click()
+  } else {
+    video.play()
+  }
+}
+
+const pause = (video: HTMLVideoElement) => {
+  console.log('pausing')
+  const disneyPlusPlayPauseButton = getDisneyPlusPlayPauseElement()
+  if (disneyPlusPlayPauseButton) {
+    disneyPlusPlayPauseButton.click()
+  } else {
+    video.pause()
+  }
+}
+
+const onForeignVideoEvent = (video: HTMLVideoElement, skipEvents: SkipEvents, message: any) => {
+  if (Date.now() >= lastEventTime + eventCoolDown || true) {
+    lastEventTime = Date.now()
+    const videoTime = message?.data?.videoTime
+
+    if (video) {
+      switch (message.type) {
+        case 'playLikeEvent':
+          skipEvents.seeked = true
+          skipEvents.play = true
+          skipEvents.pause = false
+          video.currentTime = videoTime
+          play(video)
+          console.info('play', message)
+          break
+        case 'pauseLikeEvent':
+          skipEvents.seeked = true
+          skipEvents.pause = true
+          skipEvents.play = false
+          pause(video)
+          video.currentTime = videoTime
+          console.info('pause', message)
+          break
+        case 'seekLikeEvent':
+          skipEvents.seeked = true
+          skipEvents.pause = false
+          skipEvents.play = false
+          video.currentTime = videoTime
+          console.info('seek', message)
+          break
+        default:
+          console.info(message)
+      }
+    } else {
+      console.warn('no video found!')
+    }
+  } else {
+    console.log(`${message.type} event blocked by cool-down`)
+  }
+}
+
+
 const sendSetupSocketMessage = async (sessionID: string, video: HTMLVideoElement) => {
   const port = chrome.runtime.connect({ name: 'stream-together' })
 
@@ -126,42 +198,8 @@ const sendSetupSocketMessage = async (sessionID: string, video: HTMLVideoElement
     removeEventListeners()
   })
 
-  let lastEventTime = Date.now()
-  const coolDown = 300
   port.onMessage.addListener((message) => {
-    if (Date.now() >= lastEventTime + coolDown) {
-      lastEventTime = Date.now()
-      const videoTime = message?.data?.videoTime
-
-      if (video) {
-        switch (message.type) {
-          case 'playLikeEvent':
-            skipEvents.seeked = true
-            skipEvents.play = true
-            video.currentTime = videoTime
-            video.play()
-            console.info('play', message)
-            break
-          case 'pauseLikeEvent':
-            skipEvents.seeked = true
-            skipEvents.pause = true
-            video.pause()
-            video.currentTime = videoTime
-            console.info('pause', message)
-            break
-          case 'seekLikeEvent':
-            skipEvents.seeked = true
-            video.currentTime = videoTime
-            break
-          default:
-            console.info(message)
-        }
-      } else {
-        console.warn('no video found!')
-      }
-    } else {
-      console.log('Event blocked by cool-down')
-    }
+    onForeignVideoEvent(video, skipEvents, message)
   })
 }
 
