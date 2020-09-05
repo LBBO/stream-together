@@ -24,6 +24,22 @@ export const sessionManager = (sessions: SessionsObject): WebsocketRequestHandle
   }
   console.log(`Socket opened from ${clientIP}`)
 
+  // If user joined pre-existing session, synchronize all users
+  if (session.webSockets.size > 1) {
+    const sockets = session.webSockets.values()
+
+    for (const socket of sockets) {
+      // Only send sync request to first different user; they'll trigger the actual sync
+      if (socket !== ws) {
+        console.log(`Sending seekRequest to first socket`)
+        socket.send(JSON.stringify({
+          type: 'syncRequest',
+        }))
+        break
+      }
+    }
+  }
+
   ws.onclose = () => {
     clearInterval(intervalID)
 
