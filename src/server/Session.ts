@@ -4,6 +4,7 @@ import * as ws from 'ws'
 export type Session = {
   ipAddresses: Set<string>,
   webSockets: Set<ws>,
+  syncedSockets?: Set<ws>,
   data: {
     uuid: string,
   }

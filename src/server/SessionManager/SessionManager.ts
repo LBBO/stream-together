@@ -1,6 +1,6 @@
 import { WebsocketRequestHandler } from 'express-ws'
 import { SessionsObject } from '../Session'
-import { forwardEvent } from './forwardEvent'
+import { broadcastEvent, forwardEvent } from './forwardEvent'
 
 export const sessionManager = (sessions: SessionsObject): WebsocketRequestHandler => (ws, req) => {
   const clientIP = req.connection.remoteAddress
@@ -47,9 +47,28 @@ export const sessionManager = (sessions: SessionsObject): WebsocketRequestHandle
         }
 
         switch (messageObj.type) {
+          case 'syncComplete':
+            if (!session.syncedSockets) {
+              session.syncedSockets = new Set()
+            }
+
+            session.syncedSockets.add(ws)
+
+            console.log(`${session.syncedSockets.size} sockets synced`)
+
+            if (session.syncedSockets.size === session.webSockets.size) {
+              if (messageObj.data.wasPreviouslyPlaying) {
+                broadcastEvent('playLikeEvent', {}, session)
+              }
+
+              session.syncedSockets = undefined
+            }
+
+            break
           case 'pauseLikeEvent':
           case 'playLikeEvent':
           case 'seekLikeEvent':
+          case 'sync':
             console.log(`socket event ${messageObj.type}`)
             forwardEvent(messageObj.type, messageObj.data, ws, session)
             break

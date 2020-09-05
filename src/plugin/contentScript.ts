@@ -1,5 +1,6 @@
 import Port = chrome.runtime.Port
-import { acceptableTimeDifferenceBetweenClientsInMS, eventCoolDown } from './config'
+// import { acceptableTimeDifferenceBetweenClientsInSeconds, eventCoolDown } from './config'
+const acceptableTimeDifferenceBetweenClientsInSeconds = 1, eventCoolDown = 400
 
 let lastEventTime = Date.now()
 
@@ -148,10 +149,12 @@ const pause = (video: HTMLVideoElement) => {
   }
 }
 
-const setNewVideoTimeIfNecessary = (video: HTMLVideoElement, newVideoTime?: number) => {
+const setNewVideoTimeIfNecessary = (video: HTMLVideoElement, newVideoTime?: number, force = false) => {
   if (
     typeof newVideoTime === 'number' &&
-    Math.abs(video.currentTime - newVideoTime) > acceptableTimeDifferenceBetweenClientsInMS
+    (
+      force || Math.abs(video.currentTime - newVideoTime) > acceptableTimeDifferenceBetweenClientsInSeconds
+    )
   ) {
     video.currentTime = newVideoTime
   }
@@ -168,7 +171,35 @@ const skipEvents = (skipEvents: SkipEvents, ...eventNames: Array<keyof SkipEvent
   })
 }
 
-const onForeignVideoEvent = (video: HTMLVideoElement, shouldSkipEvents: SkipEvents, message: any) => {
+const onSync = (video: HTMLVideoElement, port: Port, shouldSkipEvents: SkipEvents, wasPreviouslyPlaying: boolean, videoTime?: number) => {
+  skipEvents(shouldSkipEvents, 'seeking', 'pause')
+  setNewVideoTimeIfNecessary(video, videoTime, true)
+  pause(video)
+  video.addEventListener('seeked', () => {
+    port.postMessage({
+      query: 'videoEvent',
+      payload: {
+        type: 'syncComplete',
+        data: { wasPreviouslyPlaying }
+      },
+    })
+  }, { once: true, passive: true })
+}
+
+const triggerSync = (video: HTMLVideoElement, port: Port, shouldSkipEvents: SkipEvents) => {
+  const videoTime = video.currentTime
+  const wasPreviouslyPlaying = !video.paused
+  port.postMessage({
+    query: 'videoEvent',
+    payload: {
+      type: 'sync',
+      data: { videoTime, wasPreviouslyPlaying },
+    },
+  })
+  onSync(video, port, shouldSkipEvents, wasPreviouslyPlaying, videoTime)
+}
+
+const onForeignVideoEvent = (video: HTMLVideoElement, shouldSkipEvents: SkipEvents, message: any, port: Port) => {
   if (Date.now() >= lastEventTime + eventCoolDown || true) {
     lastEventTime = Date.now()
     const videoTime: number | undefined = message?.data?.videoTime
@@ -181,6 +212,10 @@ const onForeignVideoEvent = (video: HTMLVideoElement, shouldSkipEvents: SkipEven
           play(video)
           console.info('play', message)
           break
+        case 'sync':
+          onSync(video, port, shouldSkipEvents, message.data.wasPreviouslyPlaying, videoTime)
+          console.info('syncing', message)
+          break
         case 'pauseLikeEvent':
           skipEvents(shouldSkipEvents, 'seeking', 'pause')
           setNewVideoTimeIfNecessary(video, videoTime)
@@ -191,6 +226,9 @@ const onForeignVideoEvent = (video: HTMLVideoElement, shouldSkipEvents: SkipEven
           skipEvents(shouldSkipEvents, 'seeking')
           setNewVideoTimeIfNecessary(video, videoTime)
           console.info('seek', message)
+          break
+        case 'syncRequest':
+          triggerSync(video, port, shouldSkipEvents)
           break
         default:
           console.info(message)
@@ -220,8 +258,10 @@ const sendSetupSocketMessage = async (sessionID: string, video: HTMLVideoElement
   })
 
   port.onMessage.addListener((message) => {
-    onForeignVideoEvent(video, skipEvents, message)
+    onForeignVideoEvent(video, skipEvents, message, port)
   })
+
+  console.log('Sync function:', () => triggerSync(video, port, skipEvents))
 }
 
 const initializePlugin = async () => {
