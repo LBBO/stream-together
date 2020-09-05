@@ -295,7 +295,7 @@ const initializeForFirstVideo = () => {
       // If session ID is already set, initialize plugin immediately. Otherwise,
       // wait for user to interact with video
       const potentialSessionID = getPotentialSessionID()
-      if (potentialSessionID === undefined) {
+      if (potentialSessionID !== undefined) {
         initializePlugin().catch(console.error)
       } else {
         firstVideo.addEventListener('play', () => {
