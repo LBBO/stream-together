@@ -83,7 +83,7 @@ const setupVideoEventHandlers = (port: Port, video: HTMLVideoElement) => {
     }
   ), {} as SkipEvents)
 
-  const registerEvent = (eventType: string, eventName: keyof typeof skipEvents) => {
+  const registerEvent = (eventType: string, eventName: keyof SkipEvents) => {
     const listener = () => {
       if (!skipEvents[eventName]) {
         console.log(`Sending ${eventName} event`)
@@ -130,22 +130,26 @@ const getDisneyPlusPlayPauseElement = () => document.querySelector<HTMLButtonEle
 )
 
 const play = (video: HTMLVideoElement) => {
-  console.log('playing')
-  const disneyPlusPlayPauseButton = getDisneyPlusPlayPauseElement()
-  if (disneyPlusPlayPauseButton) {
-    disneyPlusPlayPauseButton.click()
-  } else {
-    video.play()
+  if (video.paused) {
+    console.log('playing')
+    const disneyPlusPlayPauseButton = getDisneyPlusPlayPauseElement()
+    if (disneyPlusPlayPauseButton) {
+      disneyPlusPlayPauseButton.click()
+    } else {
+      video.play()
+    }
   }
 }
 
 const pause = (video: HTMLVideoElement) => {
-  console.log('pausing')
-  const disneyPlusPlayPauseButton = getDisneyPlusPlayPauseElement()
-  if (disneyPlusPlayPauseButton) {
-    disneyPlusPlayPauseButton.click()
-  } else {
-    video.pause()
+  if (!video.paused) {
+    console.log('pausing')
+    const disneyPlusPlayPauseButton = getDisneyPlusPlayPauseElement()
+    if (disneyPlusPlayPauseButton) {
+      disneyPlusPlayPauseButton.click()
+    } else {
+      video.pause()
+    }
   }
 }
 
@@ -228,6 +232,7 @@ const onForeignVideoEvent = (video: HTMLVideoElement, shouldSkipEvents: SkipEven
           console.info('seek', message)
           break
         case 'syncRequest':
+          console.log('SyncRequest')
           triggerSync(video, port, shouldSkipEvents)
           break
         default:
