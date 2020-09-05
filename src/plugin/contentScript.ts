@@ -67,7 +67,7 @@ type SkipEvents = { [key in keyof HTMLMediaElementEventMap]: boolean }
 const setupVideoEventHandlers = (port: Port, video: HTMLVideoElement) => {
   const playLike = ['play'] as Array<keyof HTMLMediaElementEventMap>
   const pauseLike = ['pause'] as Array<keyof HTMLMediaElementEventMap>
-  const seekLike = ['seeked'] as Array<keyof HTMLMediaElementEventMap>
+  const seekLike = ['seeking'] as Array<keyof HTMLMediaElementEventMap>
 
   const skipEvents = [...playLike, ...pauseLike, ...seekLike].reduce((skipEvents, eventName) => (
     {
