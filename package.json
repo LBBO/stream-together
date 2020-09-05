@@ -6,7 +6,7 @@
     "buildClient": "vite build",
     "startServer": "ts-node ./src/server/index.ts",
     "devServer": "nodemon startServer",
-    "devContentScript": "npx tsc --project src/plugin --inlineSourceMap --inlineSources"
+    "devContentScript": "tsc --project src/plugin --inlineSourceMap --inlineSources"
   },
   "dependencies": {
     "dotenv": "^8.2.0",
