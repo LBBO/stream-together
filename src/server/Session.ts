@@ -14,16 +14,14 @@ export type SessionsObject = {
   [key: string]: Session,
 }
 
-export const createNewSession = ({ ip }: { ip: string }) => {
+export const createNewSession = ({ ip }: { ip: string }): Session => {
   const uuid = createUuid()
 
-  const session: Session = {
+  return {
     ipAddresses: new Set([ip]),
     webSockets: new Set(),
     data: {
       uuid,
     },
   }
-
-  return session
 }

@@ -1,3 +1,5 @@
+import type { MessageType } from './MessageType'
+
 const serverUrl = 'localhost:3000'
 const url = `http://${serverUrl}/`
 const socketUrl = `ws://${serverUrl}/`
@@ -24,13 +26,12 @@ const checkSession = async (sessionID: string) => {
   return response.status === 200
 }
 
-chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message: MessageType, sender, sendResponse) => {
   const handleMessage = async () => {
     console.log('Message received:', message)
     switch (message.query) {
       case 'createSession':
-        const sessionIDResult = await createSession()
-        sendResponse(sessionIDResult)
+        sendResponse(await createSession())
         break
       case 'checkSession':
         sendResponse(await checkSession(message.sessionID))

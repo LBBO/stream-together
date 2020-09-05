@@ -1,8 +1,9 @@
 import { Session } from '../Session'
 import * as ws from 'ws'
+import type {VideoEvent} from '../VideoEvent'
 
-export const forwardEvent = (type: string, data: any, ws: ws | null, session: Session) => {
-  session.webSockets.forEach((otherWebSocket) => {
+export const forwardEvent = (type: string, data: VideoEvent, ws: ws | null, session: Session): void => {
+  session.webSockets.forEach((otherWebSocket): void => {
     if (otherWebSocket !== ws) {
       otherWebSocket.send(JSON.stringify({
         type,
@@ -12,4 +13,5 @@ export const forwardEvent = (type: string, data: any, ws: ws | null, session: Se
   })
 }
 
-export const broadcastEvent = (type: string, data: any, session: Session) => forwardEvent(type, data, null, session)
+export const broadcastEvent = (type: string, data: VideoEvent, session: Session): void =>
+  forwardEvent(type, data, null, session)

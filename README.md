@@ -17,7 +17,7 @@ as well. I apologize for the inconvenience and hope to extract this stuff
 into some actual settings in the future.
 
 ```ts
-// ./src/plugin/backgroundScript.ts:1
+// ./src/plugin/backgroundScript.ts:3
 const serverUrl = 'myDomain.com:1234'
 ```
 
