@@ -1,6 +1,6 @@
 import { WebsocketRequestHandler } from 'express-ws'
 import { SessionsObject } from '../Session'
-import { forwardEvent } from './forwardEvent'
+import { broadcastEvent, forwardEvent } from './forwardEvent'
 
 export const sessionManager = (sessions: SessionsObject): WebsocketRequestHandler => (ws, req) => {
   const clientIP = req.connection.remoteAddress
@@ -8,7 +8,12 @@ export const sessionManager = (sessions: SessionsObject): WebsocketRequestHandle
   const session = sessions[sessionID]
 
   const intervalID = setInterval(() => {
-    ws.send(JSON.stringify({ type: 'ping' }))
+    // Only send ping if socked hasn't closed in the mean time
+    if (ws.readyState === ws.OPEN) {
+      ws.send(JSON.stringify({ type: 'ping' }))
+    } else {
+      clearInterval(intervalID)
+    }
   }, 45000)
 
   if (session && clientIP) {
@@ -18,6 +23,22 @@ export const sessionManager = (sessions: SessionsObject): WebsocketRequestHandle
     ws.close(404)
   }
   console.log(`Socket opened from ${clientIP}`)
+
+  // If user joined pre-existing session, synchronize all users
+  if (session.webSockets.size > 1) {
+    const sockets = session.webSockets.values()
+
+    for (const socket of sockets) {
+      // Only send sync request to first different user; they'll trigger the actual sync
+      if (socket !== ws) {
+        console.log(`Sending seekRequest to first socket`)
+        socket.send(JSON.stringify({
+          type: 'syncRequest',
+        }))
+        break
+      }
+    }
+  }
 
   ws.onclose = () => {
     clearInterval(intervalID)
@@ -47,9 +68,28 @@ export const sessionManager = (sessions: SessionsObject): WebsocketRequestHandle
         }
 
         switch (messageObj.type) {
+          case 'syncComplete':
+            if (!session.syncedSockets) {
+              session.syncedSockets = new Set()
+            }
+
+            session.syncedSockets.add(ws)
+
+            console.log(`${session.syncedSockets.size} sockets synced`)
+
+            if (session.syncedSockets.size === session.webSockets.size) {
+              if (messageObj.data.wasPreviouslyPlaying) {
+                broadcastEvent('playLikeEvent', {}, session)
+              }
+
+              session.syncedSockets = undefined
+            }
+
+            break
           case 'pauseLikeEvent':
           case 'playLikeEvent':
           case 'seekLikeEvent':
+          case 'sync':
             console.log(`socket event ${messageObj.type}`)
             forwardEvent(messageObj.type, messageObj.data, ws, session)
             break

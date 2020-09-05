@@ -2,7 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/.idea/disney-together.iml" filepath="$PROJECT_DIR$/.idea/disney-together.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/stream-together.iml" filepath="$PROJECT_DIR$/.idea/stream-together.iml" />
     </modules>
   </component>
 </project>

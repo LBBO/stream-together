@@ -13,7 +13,7 @@ app.use(express.json({
   inflate: false,
 }))
 app.use(express.static('./public'))
-app.use(morgan('dev'))
+app.use(morgan('common'))
 
 app.get('/', (req, res) => {
   res.send({
@@ -29,4 +29,4 @@ app.get('/checkSession/:sessionID', checkSession(sessions))
 
 app.ws('/sessionManager/:sessionID', sessionManager(sessions))
 
-app.listen(process.env.PORT || 3000)
+app.listen(process.env.PORT || 3000, () => console.info(`Server running on port ${process.env.PORT}`))

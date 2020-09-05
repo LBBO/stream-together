@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "watch": true,
+    "module": "System",
+    "outDir": "../../dist/",
+    "sourceMap": false
+  },
+  "include": [
+    "./**/*.ts"
+  ]
+}
