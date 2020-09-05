@@ -39,7 +39,7 @@
       "node_modules"
     ],
     "watch": [
-      "src"
+      "src/server"
     ],
     "exec": "npm run startServer",
     "ext": "ts"
