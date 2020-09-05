@@ -175,7 +175,37 @@ const initializePlugin = async () => {
     await switchToSession(sessionID)
 
     await sendSetupSocketMessage(sessionID, chosenVideo)
+    return true
+  } else {
+    return false
   }
 }
 
-initializePlugin().catch(console.error)
+/**
+ * Observes DOM and looks for first video. As soon as a video element is found, the plugin is initialized.
+ */
+const initializeForFirstVideo = () => {
+  const obsRef: { current?: MutationObserver } = { current: undefined }
+
+  obsRef.current = new MutationObserver(() => {
+    const firstVideo = document.querySelector('video')
+
+    if (firstVideo) {
+      obsRef.current?.disconnect()
+      firstVideo.addEventListener('play', () => {
+        initializePlugin().catch(console.error)
+      }, { once: true })
+    }
+  })
+
+  obsRef.current?.observe(document.documentElement, {
+    attributes: false,
+    attributeOldValue: false,
+    characterData: false,
+    characterDataOldValue: false,
+    childList: true,
+    subtree: true,
+  })
+}
+
+initializeForFirstVideo()
