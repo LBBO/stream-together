@@ -42,18 +42,23 @@ npm run devServer
 in WSL. It needs to be executed via the shell (integrated shell is fine), but
 the Run tab won't do it.
 
-With everything set up, just visit a website with a video on it. Open the
-console and you'll find a session ID. Add it to the URL after a hash so
-the new URL now might look something like this:
+With everything set up, just visit a website with a video on it. For most pages, the URL
+will be set automatically. If you see a long random string after a `#` in the URL,
+that is the case and you can skip the next step. Your URL should look somewhat like this:
 
 ```
 https://www.youtube.com/watch?v=dQw4w9WgXcQ#19b9cdee-961e-4d1d-b0e9-07fe6f35ca32
 ```
 
+If it doesn't, you'll have to open the console and you'll find a `sessionID` there. Copy it
+and manually add it to your URL after a `#`. Your URL should now somewhat resemble the URL
+above.
+
 This link can now be shared with your friends to watch the video together!
 
-The session ID is not added automatically, as it can cause some websites
-to break (such as Disney Plus, currently). I am working on a better solution!
+The session ID isn't always added automatically, as it can cause some websites
+to break (such as Disney Plus, currently). I am looking for a better solution but suggestions are
+always welcome!
 
 ## Run tests
 

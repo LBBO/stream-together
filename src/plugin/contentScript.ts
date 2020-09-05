@@ -41,7 +41,11 @@ const sendCheckSessionMessage = async (sessionID: string): Promise<boolean> => {
 }
 
 const switchToSession = (sessionID: string) => {
-  // window.history.pushState('', '', `#${sessionID}`)
+  // Write sessionID to URL hash if no hash is set so far and if user is not on Disney Plus
+  // as this seems to break Disney Plus
+  if (!location.host.includes('disney.com') && getPotentialSessionID() === undefined) {
+    window.history.pushState('', '', `#${sessionID}`)
+  }
   console.log({ sessionID })
 }
 
