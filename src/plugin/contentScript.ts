@@ -40,7 +40,8 @@ const sendCheckSessionMessage = async (sessionID: string): Promise<boolean> => {
 }
 
 const switchToSession = (sessionID: string) => {
-  window.history.pushState('', '', `#${sessionID}`)
+  // window.history.pushState('', '', `#${sessionID}`)
+  console.log({ sessionID })
 }
 
 const getOrCreateSessionID = async () => {
