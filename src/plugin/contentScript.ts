@@ -176,19 +176,19 @@ const onForeignVideoEvent = (video: HTMLVideoElement, shouldSkipEvents: SkipEven
     if (video) {
       switch (message.type) {
         case 'playLikeEvent':
-          skipEvents(shouldSkipEvents, 'seeked', 'play')
+          skipEvents(shouldSkipEvents, 'seeking', 'play')
           setNewVideoTimeIfNecessary(video, videoTime)
           play(video)
           console.info('play', message)
           break
         case 'pauseLikeEvent':
-          skipEvents(shouldSkipEvents, 'seeked', 'pause')
+          skipEvents(shouldSkipEvents, 'seeking', 'pause')
           setNewVideoTimeIfNecessary(video, videoTime)
           pause(video)
           console.info('pause', message)
           break
         case 'seekLikeEvent':
-          skipEvents(shouldSkipEvents, 'seeked')
+          skipEvents(shouldSkipEvents, 'seeking')
           setNewVideoTimeIfNecessary(video, videoTime)
           console.info('seek', message)
           break
