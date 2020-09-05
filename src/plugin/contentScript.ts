@@ -153,13 +153,19 @@ const pause = (video: HTMLVideoElement) => {
   }
 }
 
-const setNewVideoTimeIfNecessary = (video: HTMLVideoElement, newVideoTime?: number, force = false) => {
+const setNewVideoTimeIfNecessary = (
+  video: HTMLVideoElement,
+  shouldSkipEvents: SkipEvents,
+  newVideoTime?: number,
+  force = false,
+) => {
   if (
     typeof newVideoTime === 'number' &&
     (
       force || Math.abs(video.currentTime - newVideoTime) > acceptableTimeDifferenceBetweenClientsInSeconds
     )
   ) {
+    shouldSkipEvents.seeking = true
     video.currentTime = newVideoTime
   }
 }
@@ -175,19 +181,39 @@ const skipEvents = (skipEvents: SkipEvents, ...eventNames: Array<keyof SkipEvent
   })
 }
 
-const onSync = (video: HTMLVideoElement, port: Port, shouldSkipEvents: SkipEvents, wasPreviouslyPlaying: boolean, videoTime?: number) => {
-  skipEvents(shouldSkipEvents, 'seeking', 'pause')
-  setNewVideoTimeIfNecessary(video, videoTime, true)
+const onSync = (
+  video: HTMLVideoElement,
+  port: Port,
+  shouldSkipEvents: SkipEvents,
+  wasPreviouslyPlaying: boolean,
+  videoTime?: number,
+  skipSeek = false,
+) => {
+  if (!video.paused) {
+    skipEvents(shouldSkipEvents, 'pause')
+  }
+
+  if (!skipSeek) {
+    setNewVideoTimeIfNecessary(video, shouldSkipEvents, videoTime, true)
+  }
+
   pause(video)
-  video.addEventListener('seeked', () => {
+
+  const sendSyncCompleteEvent = () => {
     port.postMessage({
       query: 'videoEvent',
       payload: {
         type: 'syncComplete',
-        data: { wasPreviouslyPlaying }
+        data: { wasPreviouslyPlaying },
       },
     })
-  }, { once: true, passive: true })
+  }
+
+  if (skipSeek) {
+    sendSyncCompleteEvent()
+  } else {
+    video.addEventListener('seeked', sendSyncCompleteEvent, { once: true, passive: true })
+  }
 }
 
 const triggerSync = (video: HTMLVideoElement, port: Port, shouldSkipEvents: SkipEvents) => {
@@ -200,7 +226,7 @@ const triggerSync = (video: HTMLVideoElement, port: Port, shouldSkipEvents: Skip
       data: { videoTime, wasPreviouslyPlaying },
     },
   })
-  onSync(video, port, shouldSkipEvents, wasPreviouslyPlaying, videoTime)
+  onSync(video, port, shouldSkipEvents, wasPreviouslyPlaying, videoTime, true)
 }
 
 const onForeignVideoEvent = (video: HTMLVideoElement, shouldSkipEvents: SkipEvents, message: any, port: Port) => {
@@ -211,8 +237,8 @@ const onForeignVideoEvent = (video: HTMLVideoElement, shouldSkipEvents: SkipEven
     if (video) {
       switch (message.type) {
         case 'playLikeEvent':
-          skipEvents(shouldSkipEvents, 'seeking', 'play')
-          setNewVideoTimeIfNecessary(video, videoTime)
+          skipEvents(shouldSkipEvents, 'play')
+          setNewVideoTimeIfNecessary(video, shouldSkipEvents, videoTime)
           play(video)
           console.info('play', message)
           break
@@ -221,14 +247,13 @@ const onForeignVideoEvent = (video: HTMLVideoElement, shouldSkipEvents: SkipEven
           console.info('syncing', message)
           break
         case 'pauseLikeEvent':
-          skipEvents(shouldSkipEvents, 'seeking', 'pause')
-          setNewVideoTimeIfNecessary(video, videoTime)
+          skipEvents(shouldSkipEvents, 'pause')
+          setNewVideoTimeIfNecessary(video, shouldSkipEvents, videoTime)
           pause(video)
           console.info('pause', message)
           break
         case 'seekLikeEvent':
-          skipEvents(shouldSkipEvents, 'seeking')
-          setNewVideoTimeIfNecessary(video, videoTime)
+          setNewVideoTimeIfNecessary(video, shouldSkipEvents, videoTime)
           console.info('seek', message)
           break
         case 'syncRequest':
