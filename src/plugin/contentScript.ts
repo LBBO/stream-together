@@ -44,9 +44,14 @@ const switchToSession = (sessionID: string) => {
   console.log({ sessionID })
 }
 
+const getPotentialSessionID = (): string | undefined => {
+  const hash = window.location.hash.substring(1)
+  return hash === '' ? undefined : hash
+}
+
 const getOrCreateSessionID = async () => {
   let sessionID
-  const potentialSessionID = window.location.hash.substring(1)
+  const potentialSessionID = getPotentialSessionID() ?? ''
 
   if (potentialSessionID) {
     const sessionExists = await sendCheckSessionMessage(potentialSessionID)
@@ -246,9 +251,17 @@ const initializeForFirstVideo = () => {
 
     if (firstVideo) {
       obsRef.current?.disconnect()
-      firstVideo.addEventListener('play', () => {
+
+      // If session ID is already set, initialize plugin immediately. Otherwise,
+      // wait for user to interact with video
+      const potentialSessionID = getPotentialSessionID()
+      if (potentialSessionID === undefined) {
         initializePlugin().catch(console.error)
-      }, { once: true })
+      } else {
+        firstVideo.addEventListener('play', () => {
+          initializePlugin().catch(console.error)
+        }, { once: true })
+      }
     }
   })
 
