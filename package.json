@@ -1,6 +1,6 @@
 {
   "name": "stream-together",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "scripts": {
     "start": "npm run startServer",
     "devClient": "vite",
