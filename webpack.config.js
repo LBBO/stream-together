@@ -57,7 +57,7 @@ module.exports = {
     }),
     new ZipPlugin({
       path: path.join(__dirname, 'dist'),
-      filename: `${packageJSON.name}-v${packageJSON.version}.zip`,
+      filename: `${packageJSON.name}-${packageJSON.version}.zip`,
       pathPrefix: packageJSON.name,
     }),
   ],
