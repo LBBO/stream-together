@@ -1,8 +1,7 @@
 import Port = chrome.runtime.Port
 import type { VideoEvent } from '../server/VideoEvent'
 import type { MessageType } from './MessageType'
-// import { acceptableTimeDifferenceBetweenClientsInSeconds, eventCoolDown } from './config'
-const acceptableTimeDifferenceBetweenClientsInSeconds = 1
+import { acceptableTimeDifferenceBetweenClientsInSeconds } from './config'
 
 const asyncSendMessage = (message: MessageType) => {
   return new Promise((resolve, reject) => {

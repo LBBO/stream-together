@@ -8,8 +8,8 @@
     "startServer": "ts-node ./src/server/index.ts",
     "buildServer": "tsc",
     "devServer": "nodemon startServer",
-    "buildContentScript": "tsc --project src/plugin --inlineSourceMap --inlineSources",
-    "devContentScript": "npm run buildContentScript -- --watch",
+    "buildPlugin": "webpack",
+    "watchPlugin": "webpack --watch",
     "lint": "eslint src"
   },
   "dependencies": {
@@ -34,10 +34,14 @@
     "@typescript-eslint/eslint-plugin": "^4.0.1",
     "@typescript-eslint/parser": "^4.0.1",
     "@vue/compiler-sfc": "^3.0.0-rc.1",
+    "copy-webpack-plugin": "^6.1.0",
     "eslint": "^7.8.1",
     "nodemon": "^2.0.4",
+    "ts-loader": "^8.0.3",
     "vite": "^1.0.0-rc.1",
-    "vue-eslint-parser": "^7.1.0"
+    "vue-eslint-parser": "^7.1.0",
+    "webpack": "^4.44.1",
+    "webpack-cli": "^3.3.12"
   },
   "nodemonConfig": {
     "ignore": [

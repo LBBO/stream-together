@@ -26,5 +26,5 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - run: npm ci
       # Currently, build is only executed to check for TypeScript errors
-      - run: npm run buildContentScript --if-present
+      - run: npm run buildPlugin --if-present
       - run: npm run buildServer --if-present

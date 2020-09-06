@@ -9,13 +9,13 @@
         "<all_urls>"
       ],
       "js": [
-        "dist/contentScript.js"
+        "contentScript.js"
       ]
     }
   ],
   "background": {
     "scripts": [
-      "dist/backgroundScript.js"
+      "backgroundScript.js"
     ],
     "persistent": false
   },
