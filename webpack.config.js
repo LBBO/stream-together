@@ -2,6 +2,8 @@ const path = require('path')
 const dotenv = require('dotenv')
 const CopyPlugin = require('copy-webpack-plugin')
 const JsonPostProcessPlugin = require('json-post-process-webpack-plugin')
+const ZipPlugin = require('zip-webpack-plugin')
+const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 const packageJSON = require('./package.json')
 
 dotenv.config()
@@ -40,6 +42,7 @@ module.exports = {
     extensions: ['.ts', '.tsx', '.js'],
   },
   plugins: [
+    new CleanWebpackPlugin(),
     new JsonPostProcessPlugin({
       matchers: [
         {
@@ -51,6 +54,11 @@ module.exports = {
     new CopyPlugin({
       patterns: [{ from: pluginSource`public`, to: pluginDist`` }],
       options: {},
+    }),
+    new ZipPlugin({
+      path: path.join(__dirname, 'dist'),
+      filename: `${packageJSON.name}-${packageJSON.version}.zip`,
+      pathPrefix: packageJSON.name,
     }),
   ],
 }

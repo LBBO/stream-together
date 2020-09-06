@@ -34,6 +34,7 @@
     "@typescript-eslint/eslint-plugin": "^4.0.1",
     "@typescript-eslint/parser": "^4.0.1",
     "@vue/compiler-sfc": "^3.0.0-rc.1",
+    "clean-webpack-plugin": "^3.0.0",
     "copy-webpack-plugin": "^6.1.0",
     "eslint": "^7.8.1",
     "json-post-process-webpack-plugin": "^2.0.4",
@@ -42,7 +43,8 @@
     "vite": "^1.0.0-rc.1",
     "vue-eslint-parser": "^7.1.0",
     "webpack": "^4.44.1",
-    "webpack-cli": "^3.3.12"
+    "webpack-cli": "^3.3.12",
+    "zip-webpack-plugin": "^3.0.0"
   },
   "nodemonConfig": {
     "ignore": [
