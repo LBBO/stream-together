@@ -6,6 +6,7 @@
     "devClient": "vite",
     "buildClient": "vite build",
     "startServer": "ts-node ./src/server/index.ts",
+    "buildServer": "tsc",
     "devServer": "nodemon startServer",
     "buildContentScript": "tsc --project src/plugin --inlineSourceMap --inlineSources",
     "devContentScript": "npm run buildContentScript -- --watch",
