@@ -7,7 +7,8 @@
     "buildClient": "vite build",
     "startServer": "ts-node ./src/server/index.ts",
     "devServer": "nodemon startServer",
-    "devContentScript": "tsc --project src/plugin --inlineSourceMap --inlineSources",
+    "buildContentScript": "tsc --project src/plugin --inlineSourceMap --inlineSources",
+    "devContentScript": "npm run buildContentScript -- --watch",
     "lint": "eslint src"
   },
   "dependencies": {
