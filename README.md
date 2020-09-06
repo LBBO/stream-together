@@ -1,5 +1,5 @@
 # Welcome to Stream together 👋
-![Version](https://img.shields.io/badge/version-1.0.0-blue.svg?cacheSeconds=2592000)
+![Version](https://img.shields.io/badge/version-0.1.0-blue.svg?cacheSeconds=2592000)
 
 > Stream any video together with friends without worrying about synchronization
 
