@@ -33,7 +33,7 @@ const registerNewSession = async (): Promise<string> => {
   }
 
   const hasResult = (o: unknown): o is { result: string } => {
-    return typeof (o as { result: string | undefined }).result === 'string'
+    return typeof response === 'object' && response !== null && typeof (o as { result: unknown }).result === 'string'
   }
 
   if (hasResult(response)) {
