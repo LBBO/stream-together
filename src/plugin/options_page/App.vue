@@ -1,15 +1,14 @@
 <template>
-  <img alt="Vue logo" src="./assets/logo.png" />
-  <HelloWorld msg="Hello Vue 3.0 + Vite" />
+  <OptionsForm />
 </template>
 
 <script lang="ts">
-import HelloWorld from './components/HelloWorld.vue'
+import OptionsForm from './components/OptionsForm.vue'
 
 export default {
   name: 'App',
   components: {
-    HelloWorld,
+    OptionsForm,
   },
 }
 </script>

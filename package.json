@@ -6,15 +6,11 @@
     "startServer": "ts-node ./src/server/index.ts",
     "buildServer": "tsc",
     "devServer": "nodemon startServer",
-
     "lint": "eslint src",
-
     "buildOptions": "vite build --config src/plugin/options_page/vite.config.ts",
     "devOptions": "vite --config src/plugin/options_page/vite.config.ts",
-
     "buildScriptsAndWrapPlugin": "webpack",
     "watchScriptsAndWrapPlugin": "webpack --watch",
-
     "buildPlugin": "npm run buildOptions && npm run buildScriptsAndWrapPlugin"
   },
   "dependencies": {
@@ -47,7 +43,6 @@
     "typescript": "^3.9.6",
     "vite": "^1.0.0-rc.1",
     "vue-eslint-parser": "^7.1.0",
-    "vue-loader": "^15.9.3",
     "vue-template-compiler": "^2.6.12",
     "webpack": "^4.44.1",
     "webpack-cli": "^3.3.12",
