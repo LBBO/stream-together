@@ -1,5 +1,5 @@
 # Welcome to Stream together 👋
-![Version](https://img.shields.io/badge/version-1.0.0-blue.svg?cacheSeconds=2592000)
+![Version](https://img.shields.io/badge/dynamic/json?color=blue&url=https://raw.githubusercontent.com/LBBO/stream-together/main/package.json&query=$.version&label=version)
 
 > Stream any video together with friends without worrying about synchronization
 
@@ -17,7 +17,7 @@ as well. I apologize for the inconvenience and hope to extract this stuff
 into some actual settings in the future.
 
 ```ts
-// ./src/plugin/backgroundScript.ts:1
+// ./src/plugin/backgroundScript.ts:3
 const serverUrl = 'myDomain.com:1234'
 ```
 

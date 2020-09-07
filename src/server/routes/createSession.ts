@@ -1,7 +1,7 @@
 import { createNewSession, SessionsObject } from '../Session'
 import { Request, Response } from 'express'
 
-export const createSession = (sessions: SessionsObject) => (req: Request, res: Response) => {
+export const createSession = (sessions: SessionsObject) => (req: Request, res: Response): void => {
   if (Object.values(sessions).length < 50) {
     const session = createNewSession({
       ip: req.ip,

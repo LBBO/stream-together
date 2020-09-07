@@ -1,11 +1,10 @@
 import Port = chrome.runtime.Port
-// import { acceptableTimeDifferenceBetweenClientsInSeconds, eventCoolDown } from './config'
-const acceptableTimeDifferenceBetweenClientsInSeconds = 1, eventCoolDown = 400
+import type { VideoEvent } from '../server/VideoEvent'
+import type { MessageType } from './MessageType'
+import { acceptableTimeDifferenceBetweenClientsInSeconds } from './config'
 
-let lastEventTime = Date.now()
-
-const asyncSendMessage = (message: any) => {
-  return new Promise<any>((resolve, reject) => {
+const asyncSendMessage = (message: MessageType) => {
+  return new Promise((resolve, reject) => {
     chrome.runtime.sendMessage(message, (result) => {
       if (result.error) {
         reject(new Error('An error occurred in the background script:\n' + result.error.stack))
@@ -17,12 +16,12 @@ const asyncSendMessage = (message: any) => {
 }
 
 const registerNewSession = async (): Promise<string> => {
+  let response: unknown
+
   try {
-    const { result: uuid } = await asyncSendMessage({
+    response = await asyncSendMessage({
       query: 'createSession',
     })
-
-    return uuid
   } catch (e) {
     if (e.message.includes('Failed to fetch')) {
       throw new Error('Failed to register new session because background fetch failed. Perhaps ' +
@@ -31,13 +30,24 @@ const registerNewSession = async (): Promise<string> => {
       throw e
     }
   }
+
+  const hasResult = (o: unknown): o is { result: string } => {
+    return typeof response === 'object' && response !== null && typeof (o as { result: unknown }).result === 'string'
+  }
+
+  if (hasResult(response)) {
+    return response.result
+  } else {
+    throw new Error(`Response from registering new session cannot be interpreted: ${JSON.stringify(response)}`)
+  }
 }
 
 const sendCheckSessionMessage = async (sessionID: string): Promise<boolean> => {
-  return await asyncSendMessage({
+  const response = await asyncSendMessage({
     query: 'checkSession',
     sessionID,
   })
+  return typeof response === 'boolean' ? response : false
 }
 
 const switchToSession = (sessionID: string) => {
@@ -233,45 +243,41 @@ const triggerSync = (video: HTMLVideoElement, port: Port, shouldSkipEvents: Skip
   onSync(video, port, shouldSkipEvents, wasPreviouslyPlaying, videoTime, true)
 }
 
-const onForeignVideoEvent = (video: HTMLVideoElement, shouldSkipEvents: SkipEvents, message: any, port: Port) => {
-  if (Date.now() >= lastEventTime + eventCoolDown || true) {
-    lastEventTime = Date.now()
-    const videoTime: number | undefined = message?.data?.videoTime
+const onForeignVideoEvent = (
+  video: HTMLVideoElement, shouldSkipEvents: SkipEvents, message: VideoEvent, port: Port) => {
+  const videoTime: number | undefined = message?.data?.videoTime
 
-    if (video) {
-      switch (message.type) {
-        case 'playLikeEvent':
-          skipEvents(shouldSkipEvents, 'play')
-          setNewVideoTimeIfNecessary(video, shouldSkipEvents, videoTime)
-          play(video)
-          console.info('play', message)
-          break
-        case 'sync':
-          onSync(video, port, shouldSkipEvents, message.data.wasPreviouslyPlaying, videoTime)
-          console.info('syncing', message)
-          break
-        case 'pauseLikeEvent':
-          skipEvents(shouldSkipEvents, 'pause')
-          setNewVideoTimeIfNecessary(video, shouldSkipEvents, videoTime)
-          pause(video)
-          console.info('pause', message)
-          break
-        case 'seekLikeEvent':
-          setNewVideoTimeIfNecessary(video, shouldSkipEvents, videoTime)
-          console.info('seek', message)
-          break
-        case 'syncRequest':
-          console.log('SyncRequest')
-          triggerSync(video, port, shouldSkipEvents)
-          break
-        default:
-          console.info(message)
-      }
-    } else {
-      console.warn('no video found!')
+  if (video) {
+    switch (message.type) {
+      case 'playLikeEvent':
+        skipEvents(shouldSkipEvents, 'play')
+        setNewVideoTimeIfNecessary(video, shouldSkipEvents, videoTime)
+        play(video)
+        console.info('play', message)
+        break
+      case 'sync':
+        onSync(video, port, shouldSkipEvents, message.data?.wasPreviouslyPlaying ?? false, videoTime)
+        console.info('syncing', message)
+        break
+      case 'pauseLikeEvent':
+        skipEvents(shouldSkipEvents, 'pause')
+        setNewVideoTimeIfNecessary(video, shouldSkipEvents, videoTime)
+        pause(video)
+        console.info('pause', message)
+        break
+      case 'seekLikeEvent':
+        setNewVideoTimeIfNecessary(video, shouldSkipEvents, videoTime)
+        console.info('seek', message)
+        break
+      case 'syncRequest':
+        console.log('SyncRequest')
+        triggerSync(video, port, shouldSkipEvents)
+        break
+      default:
+        console.info(message)
     }
   } else {
-    console.log(`${message.type} event blocked by cool-down`)
+    console.warn('no video found!')
   }
 }
 
