@@ -22,10 +22,12 @@ jobs:
         uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version }}
+      - name: Install dependencies
+        run: npm ci
+        env:
+          NODE_ENV: development
       - name: Build project # This would actually build your project, using zip for an example artifact
-        run: |
-          npm ci
-          npm run buildPlugin --if-present
+        run: npm run buildPlugin --if-present
       - name: Get version number
         id: package-version
         uses: martinbeentjes/npm-get-version-action@master
