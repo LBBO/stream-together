@@ -3,14 +3,19 @@
   "version": "0.1.3",
   "scripts": {
     "start": "npm run startServer",
-    "devClient": "vite",
-    "buildClient": "vite build",
     "startServer": "ts-node ./src/server/index.ts",
     "buildServer": "tsc",
     "devServer": "nodemon startServer",
-    "buildPlugin": "webpack",
-    "watchPlugin": "webpack --watch",
-    "lint": "eslint src"
+
+    "lint": "eslint src",
+
+    "buildOptions": "vite build --config src/plugin/options_page/vite.config.ts",
+    "devOptions": "vite --config src/plugin/options_page/vite.config.ts",
+
+    "buildScriptsAndWrapPlugin": "webpack",
+    "watchScriptsAndWrapPlugin": "webpack --watch",
+
+    "buildPlugin": "npm run buildOptions && npm run buildScriptsAndWrapPlugin"
   },
   "dependencies": {
     "@types/chrome": "0.0.122",
@@ -37,11 +42,14 @@
     "clean-webpack-plugin": "^3.0.0",
     "copy-webpack-plugin": "^6.1.0",
     "eslint": "^7.8.1",
+    "file-loader": "^6.1.0",
     "json-post-process-webpack-plugin": "^2.0.4",
     "nodemon": "^2.0.4",
     "ts-loader": "^8.0.3",
     "vite": "^1.0.0-rc.1",
     "vue-eslint-parser": "^7.1.0",
+    "vue-loader": "^15.9.3",
+    "vue-template-compiler": "^2.6.12",
     "webpack": "^4.44.1",
     "webpack-cli": "^3.3.12",
     "zip-webpack-plugin": "^3.0.0"
