@@ -11,7 +11,7 @@ export type Options = {
 
 export const defaultOptions: Options = {
   version: packageJSON.version,
-  backendURL: 'localhost:3000',
+  backendURL: 'http://localhost:3000',
 }
 
 const localStorageKey = 'stream-together-options'

@@ -12,7 +12,9 @@ const getBackendURL = async () => {
     throw noServerUrl()
   }
 
-  return url
+  const urlObject = new URL(url)
+
+  return urlObject.host
 }
 
 const getHTTP_URL = async () => `http://${await getBackendURL()}/`
