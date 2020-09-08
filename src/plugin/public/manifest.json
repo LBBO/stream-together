@@ -2,6 +2,7 @@
   "name": "stream-together",
   "author": "Michael David Kuckuk",
   "manifest_version": 2,
+  "options_page": "options/index.html",
   "content_scripts": [
     {
       "matches": [
@@ -22,6 +23,7 @@
     "http://*/",
     "ws://*/",
     "https://*/",
-    "wss://*/"
+    "wss://*/",
+    "storage"
   ]
 }

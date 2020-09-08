@@ -52,7 +52,10 @@ module.exports = {
       ],
     }),
     new CopyPlugin({
-      patterns: [{ from: pluginSource`public`, to: pluginDist`` }],
+      patterns: [
+        { from: pluginSource`public`, to: pluginDist`` },
+        { from: pluginDist`options`, to: pluginDist`options` },
+      ],
       options: {},
     }),
     new ZipPlugin({
