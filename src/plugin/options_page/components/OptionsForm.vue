@@ -1,11 +1,18 @@
 <template>
-  <label>
-    Backend URL:
-    <input
-      type="text"
-      v-model="backendURL"
-    />
-  </label>
+  <form @submit="() => {}">
+    <fieldset name="general">
+      <legend>
+        General
+      </legend>
+      <label>
+        Backend URL:
+        <input
+          type="text"
+          v-model="backendURL"
+        />
+      </label>
+    </fieldset>
+  </form>
 </template>
 
 <script lang="ts">
@@ -36,3 +43,9 @@ export default {
   },
 }
 </script>
+
+<style scoped lang="scss">
+fieldset {
+  border-radius: 5px;
+}
+</style>
