@@ -30,6 +30,7 @@ export default {
   h1 {
     box-sizing: border-box;
     margin-bottom: 0.3em;
+    font-size: 2.5em;
   }
 
   .save-notice {
