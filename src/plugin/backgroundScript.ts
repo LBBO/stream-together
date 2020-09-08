@@ -1,12 +1,26 @@
 import type { MessageType } from './MessageType'
+import { getOptions } from './options_page/options'
 
-const serverUrl = 'localhost:3000'
-const url = `http://${serverUrl}/`
-const socketUrl = `ws://${serverUrl}/`
+const noServerUrl = () => new Error('No Server URL found! Please configure a server URL in the plugin options!')
+
+const getBackendURL = async () => {
+  const url = (
+    await getOptions()
+  ).backendURL
+
+  if (url === undefined) {
+    throw noServerUrl()
+  }
+
+  return url
+}
+
+const getHTTP_URL = async () => `http://${await getBackendURL()}/`
+const getSocketURL = async () => `ws://${await getBackendURL()}/`
 
 const createSession = async () => {
   try {
-    const response = await fetch(`${url}createSession`, {
+    const response = await fetch(`${await getHTTP_URL()}createSession`, {
       method: 'POST',
     })
     const json = await response.json()
@@ -22,7 +36,7 @@ const createSession = async () => {
 }
 
 const checkSession = async (sessionID: string) => {
-  const response = await fetch(`${url}checkSession/${sessionID}`)
+  const response = await fetch(`${await getHTTP_URL()}checkSession/${sessionID}`)
   return response.status === 200
 }
 
@@ -55,12 +69,12 @@ chrome.runtime.onConnect.addListener(port => {
       current: undefined,
     }
 
-    const setupSocket = (sessionID: string) => {
+    const setupSocket = async (sessionID: string) => {
       if (socketRef.current) {
         socketRef.current.close()
       }
 
-      const ws = new WebSocket(`${socketUrl}sessionManager/${sessionID}`)
+      const ws = new WebSocket(`${await getSocketURL()}sessionManager/${sessionID}`)
       socketRef.current = ws
 
       ws.onopen = () => {
