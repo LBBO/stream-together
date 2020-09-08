@@ -3,37 +3,28 @@
 
 > Stream any video together with friends without worrying about synchronization
 
-## Install
+## Install plugin
+Head to this project's [releases page](https://github.com/LBBO/stream-together/releases) and download the
+latest release's `stream-together-vX.X.X.zip` file.
+Extract it to some location (which you'll need to remember).
+
+Next, visit [Chrome's extensions page](chrome:///extensions)
+and enable developer mode, if you haven't already.
+Click on "Load an unpacked extension" and choose the
+extracted folder's location.
+
+If you're using a pre-existing backend, you can skip the next step.
+
+## Install Server
+Clone this repository to your server.
 To install the dependencies, run 
 
 ```sh
 npm install
 ```
 
-If you aren't running your server locally, you'll have to edit
-`./src/plugin/backgroundScript.ts` and change the first line to reflect your
-server URL and port. If you use HTTPS and WSS, you will have to change that
-as well. I apologize for the inconvenience and hope to extract this stuff
-into some actual settings in the future.
+Now you can start the server with
 
-```ts
-// ./src/plugin/backgroundScript.ts:3
-const serverUrl = 'myDomain.com:1234'
-```
-
-Next, you'll need to compile the plugin and install it. To do that, just run:
-
-```sh
-npm run devContentScript
-```
-
-This will create a `./dist` folder with the actual plugin. Open up
-[Chrome's extensions page](chrome:///extensions) and add an unpacked
-extension.
-Choose this project's root folder, and you should be good to go!
-
-## 🚀 Usage
-To run the server locally, run
 ```sh
 npm run devServer
 ```
@@ -41,6 +32,14 @@ npm run devServer
 ⚠ Attention: Webstorm (for some reason) will not execute this script correctly
 in WSL. It needs to be executed via the shell (integrated shell is fine), but
 the Run tab won't do it.
+
+## 🚀 Usage
+If your server is not running on localhost, you'll need
+to open the plug-in options by either visiting
+[Chrome's extensions page](chrome:///extensions)
+and going to Details > Extension options, or by
+clicking on the extensions icon next to the navigation
+bar, choosing the three dots and then Options.
 
 With everything set up, just visit a website with a video on it. For most pages, the URL
 will be set automatically. If you see a long random string after a `#` in the URL,
