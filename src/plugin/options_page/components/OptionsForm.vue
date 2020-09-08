@@ -4,13 +4,14 @@
       <legend>
         General
       </legend>
-      <label>
-        Backend URL:
-        <input
-          type="text"
-          v-model="backendURL"
-        />
+      <label for="backend-url">
+        Backend URL
       </label>
+      <input
+        id="backend-url"
+        type="url"
+        v-model="backendURL"
+      />
     </fieldset>
   </form>
 </template>
