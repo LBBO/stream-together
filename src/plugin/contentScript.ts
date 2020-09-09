@@ -324,39 +324,35 @@ const initializePlugin = async (sessionID?: string) => {
 /**
  * Observes DOM and looks for first video. As soon as a video element is found, the plugin is initialized.
  */
-const initializeForFirstVideo = () => {
-  const obsRef: { current?: MutationObserver } = { current: undefined }
+const joinPreExistingSessionASAP = () => {
+  const potentialSessionID = getPotentialSessionID()
 
-  obsRef.current = new MutationObserver(() => {
-    const firstVideo = document.querySelector('video')
+  // If session ID is already set, initialize plugin immediately.
+  if (potentialSessionID !== undefined) {
+    const obsRef: { current?: MutationObserver } = { current: undefined }
 
-    if (firstVideo) {
-      obsRef.current?.disconnect()
+    obsRef.current = new MutationObserver(() => {
+      const firstVideo = document.querySelector('video')
 
-      // If session ID is already set, initialize plugin immediately. Otherwise,
-      // wait for user to interact with video
-      const potentialSessionID = getPotentialSessionID()
-      if (potentialSessionID !== undefined) {
+      if (firstVideo) {
+        obsRef.current?.disconnect()
         initializePlugin().catch(console.error)
-      // } else {
-      //   firstVideo.addEventListener('play', () => {
-      //     initializePlugin().catch(console.error)
-      //   }, { once: true })
       }
-    }
-  })
+    })
 
-  obsRef.current?.observe(document.documentElement, {
-    attributes: false,
-    attributeOldValue: false,
-    characterData: false,
-    characterDataOldValue: false,
-    childList: true,
-    subtree: true,
-  })
+    obsRef.current?.observe(document.documentElement, {
+      attributes: false,
+      attributeOldValue: false,
+      characterData: false,
+      characterDataOldValue: false,
+      childList: true,
+      subtree: true,
+    })
+  }
 }
 
-// initializeForFirstVideo()
+joinPreExistingSessionASAP()
+
 listenForBrowserActionEvents(async () => {
   const sessionID = await registerNewSession()
   await initializePlugin(sessionID)
