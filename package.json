@@ -9,9 +9,11 @@
     "lint": "eslint src",
     "buildOptions": "vite build --config src/plugin/options_page/vite.config.ts",
     "devOptions": "vite --config src/plugin/options_page/vite.config.ts",
+    "buildBrowserAction": "vite build --config src/plugin/browser_action/vite.config.ts",
+    "devBrowserAction": "vite --config src/plugin/browser_action/vite.config.ts",
     "buildScriptsAndWrapPlugin": "webpack",
     "watchScriptsAndWrapPlugin": "webpack --watch",
-    "buildPlugin": "npm run buildOptions && npm run buildScriptsAndWrapPlugin"
+    "buildPlugin": "npm run buildOptions && npm run buildBrowserAction && npm run buildScriptsAndWrapPlugin"
   },
   "dependencies": {
     "uuid": "^8.2.0",
