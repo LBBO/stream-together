@@ -10,6 +10,7 @@ import {
   SkipEvents,
   skipEvents,
 } from './contentScript/videoController'
+import { getPotentialSessionID, initializePlugin } from './contentScript/sessionController'
 
 const asyncSendMessage = (message: MessageType) => {
   return new Promise((resolve, reject) => {
@@ -60,21 +61,7 @@ const sendCheckSessionMessage = async (sessionID: string): Promise<boolean> => {
   return typeof response === 'boolean' ? response : false
 }
 
-const switchToSession = (sessionID: string) => {
-  // Write sessionID to URL hash if no hash is set so far and if user is not on Disney Plus
-  // as this seems to break Disney Plus
-  if (!location.host.includes('disney.com') && getPotentialSessionID() === undefined) {
-    window.history.pushState('', '', `#${sessionID}`)
-  }
-  console.log({ sessionID })
-}
-
-const getPotentialSessionID = (): string | undefined => {
-  const hash = window.location.hash.substring(1)
-  return hash === '' ? undefined : hash
-}
-
-const getOrCreateSessionID = async () => {
+export const getOrCreateSessionID = async () => {
   let sessionID
   const potentialSessionID = getPotentialSessionID() ?? ''
 
@@ -180,7 +167,7 @@ const onForeignVideoEvent = (
 }
 
 
-const sendSetupSocketMessage = async (sessionID: string, video: HTMLVideoElement) => {
+export const sendSetupSocketMessage = async (sessionID: string, video: HTMLVideoElement): Promise<() => void> => {
   const port = chrome.runtime.connect({ name: 'stream-together' })
 
   port.postMessage({
@@ -200,22 +187,8 @@ const sendSetupSocketMessage = async (sessionID: string, video: HTMLVideoElement
   })
 
   console.log('Sync function:', () => triggerSync(video, port, skipEvents))
-}
 
-const initializePlugin = async (sessionID?: string) => {
-  const videoElements = document.querySelectorAll('video')
-
-  if (videoElements.length >= 1) {
-    console.log('setting up plugin')
-    const chosenVideo = videoElements[0]
-    const usedSessionID = sessionID ?? await getOrCreateSessionID()
-    await switchToSession(usedSessionID)
-
-    await sendSetupSocketMessage(usedSessionID, chosenVideo)
-    return true
-  } else {
-    return false
-  }
+  return port.disconnect
 }
 
 /**

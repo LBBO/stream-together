@@ -1,13 +1,39 @@
 <template>
-  <button @click="createSession">
+  <button
+    v-if="!isConnectedToSession"
+    @click="createSession"
+  >
     Create session
+  </button>
+  <button
+    v-else
+    @click="leaveSession"
+  >
+    Leave session
   </button>
   <hr />
   <label for="sessionID">
     Session ID
   </label>
-  <input id="sessionID" type="text" v-model="sessionID" />
-  <button @click="joinSession">
+  <div class="session-id-wrapper">
+    <input
+      :disabled="isConnectedToSession"
+      id="sessionID"
+      type="text"
+      v-model="sessionID"
+    />
+    <span
+      v-if="isConnectedToSession"
+      class="cope-session-id-to-clipboard"
+      @click="copySessionToClipboard"
+    >
+      Copy
+    </span>
+  </div>
+  <button
+    v-if="!isConnectedToSession"
+    @click="joinSession"
+  >
     Join session
   </button>
 </template>
@@ -20,12 +46,31 @@ export default {
   data() {
     return {
       sessionID: '',
+      isConnectedToSession: false,
+      showCopySuccess: false,
+      timeoutID: null,
     }
+  },
+  mounted() {
+    sendMessageToActiveTab({
+      query: 'getConnectionStatus',
+    }).then(({ isConnected, sessionID }: { isConnected: boolean, sessionID: string }) => {
+      this.isConnectedToSession = isConnected
+      this.sessionID = sessionID
+      return
+    }).then(() => {
+      console.log('Is connected to session!', this.isConnectedToSession, this.sessionID)
+    })
   },
   methods: {
     createSession() {
       sendMessageToActiveTab({
         query: 'createSession',
+      }).then(({ success, sessionID }: { success: boolean, sessionID?: string }) => {
+        if (success && sessionID) {
+          this.sessionID = sessionID
+          this.isConnectedToSession = true
+        }
       })
     },
     joinSession() {
@@ -34,10 +79,44 @@ export default {
         sessionID: this.sessionID,
       })
     },
+    leaveSession() {
+      sendMessageToActiveTab({
+        query: 'leaveSession',
+      }).then(() => {
+        this.sessionID = ''
+      })
+    },
+    copySessionToClipboard() {
+      navigator.clipboard.writeText(this.sessionID)
+      .then(() => {
+        this.showCopySuccess = true
+
+        if (this.timeoutID) {
+          clearTimeout(this.timeoutID)
+        }
+
+        this.timeoutID = setTimeout(() => {
+          this.showCopySuccess = false
+          this.timeoutID = null
+        }, 3000)
+      })
+    }
   },
 }
 </script>
 
 <style scoped lang="scss">
+.session-id-wrapper {
+  display: flex;
+  flex-direction: row;
 
+  input {
+    flex-grow: 1;
+  }
+
+  .cope-session-id-to-clipboard {
+    cursor: pointer;
+    padding: 0.75em;
+  }
+}
 </style>

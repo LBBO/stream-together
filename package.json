@@ -36,7 +36,6 @@
     "eslint": "^7.8.1",
     "express": "^4.17.1",
     "express-ws": "^4.0.0",
-    "file-loader": "^6.1.0",
     "json-post-process-webpack-plugin": "^2.0.4",
     "morgan": "^1.10.0",
     "nodemon": "^2.0.4",
