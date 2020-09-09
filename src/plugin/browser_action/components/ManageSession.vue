@@ -13,6 +13,8 @@
 </template>
 
 <script lang="ts">
+import { sendMessageToActiveTab } from '../sendMessageToActiveTab'
+
 export default {
   name: 'ManageSession',
   data() {
@@ -22,11 +24,16 @@ export default {
   },
   methods: {
     createSession() {
-      console.log('create session')
+      sendMessageToActiveTab({
+        query: 'createSession',
+      })
     },
     joinSession() {
-      console.log('join session', this.sessionID)
-    }
+      sendMessageToActiveTab({
+        query: 'joinSession',
+        sessionID: this.sessionID,
+      })
+    },
   },
 }
 </script>

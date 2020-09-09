@@ -2,6 +2,7 @@ import Port = chrome.runtime.Port
 import type { VideoEvent } from '../server/VideoEvent'
 import type { MessageType } from './MessageType'
 import { acceptableTimeDifferenceBetweenClientsInSeconds } from './config'
+import { listenForBrowserActionEvents } from './contentScript/listenForBrowserActionEvents'
 
 const asyncSendMessage = (message: MessageType) => {
   return new Promise((resolve, reject) => {
@@ -304,16 +305,16 @@ const sendSetupSocketMessage = async (sessionID: string, video: HTMLVideoElement
   console.log('Sync function:', () => triggerSync(video, port, skipEvents))
 }
 
-const initializePlugin = async () => {
+const initializePlugin = async (sessionID?: string) => {
   const videoElements = document.querySelectorAll('video')
 
   if (videoElements.length >= 1) {
     console.log('setting up plugin')
     const chosenVideo = videoElements[0]
-    const sessionID = await getOrCreateSessionID()
-    await switchToSession(sessionID)
+    const usedSessionID = sessionID ?? await getOrCreateSessionID()
+    await switchToSession(usedSessionID)
 
-    await sendSetupSocketMessage(sessionID, chosenVideo)
+    await sendSetupSocketMessage(usedSessionID, chosenVideo)
     return true
   } else {
     return false
@@ -337,10 +338,10 @@ const initializeForFirstVideo = () => {
       const potentialSessionID = getPotentialSessionID()
       if (potentialSessionID !== undefined) {
         initializePlugin().catch(console.error)
-      } else {
-        firstVideo.addEventListener('play', () => {
-          initializePlugin().catch(console.error)
-        }, { once: true })
+      // } else {
+      //   firstVideo.addEventListener('play', () => {
+      //     initializePlugin().catch(console.error)
+      //   }, { once: true })
       }
     }
   })
@@ -355,4 +356,9 @@ const initializeForFirstVideo = () => {
   })
 }
 
-initializeForFirstVideo()
+// initializeForFirstVideo()
+listenForBrowserActionEvents(async () => {
+  const sessionID = await registerNewSession()
+  await initializePlugin(sessionID)
+  return sessionID
+}, initializePlugin)
