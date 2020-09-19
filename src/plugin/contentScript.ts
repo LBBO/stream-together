@@ -166,7 +166,6 @@ const onForeignVideoEvent = (
   }
 }
 
-
 export const sendSetupSocketMessage = async (sessionID: string, video: HTMLVideoElement): Promise<() => void> => {
   const port = chrome.runtime.connect({ name: 'stream-together' })
 
@@ -186,9 +185,13 @@ export const sendSetupSocketMessage = async (sessionID: string, video: HTMLVideo
     onForeignVideoEvent(video, skipEvents, message, port)
   })
 
-  console.log('Sync function:', () => triggerSync(video, port, skipEvents))
-
-  return port.disconnect
+  // Return method to leave session. Said method must disconnect the port (causing the WebSocket to be disconnected)
+  // and must then remove the event listeners, as a manual disconnect doesn't fire the onDisconnect handler.
+  return () => {
+    console.log('Manually disconnecting port and removing event listeners')
+    port.disconnect()
+    removeEventListeners()
+  }
 }
 
 /**
