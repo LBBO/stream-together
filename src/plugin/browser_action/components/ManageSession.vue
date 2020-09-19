@@ -21,6 +21,7 @@
       id="sessionID"
       type="text"
       v-model="sessionID"
+      @change="validateSessionID"
     />
     <span
       v-if="isConnectedToSession"
@@ -33,6 +34,7 @@
   <button
     v-if="!isConnectedToSession"
     @click="joinSession"
+    :disabled="!sessionIdIsValid"
   >
     Join session
   </button>
@@ -40,6 +42,7 @@
 
 <script lang="ts">
 import { sendMessageToActiveTab } from '../sendMessageToActiveTab'
+import { asyncSendMessage } from '../../contentScript'
 
 export default {
   name: 'ManageSession',
@@ -48,7 +51,9 @@ export default {
       sessionID: '',
       isConnectedToSession: false,
       showCopySuccess: false,
-      timeoutID: null,
+      showCopySuccessInfoTimeoutID: null,
+      sessionIdIsValid: false,
+      validationDebounceTimeout: undefined as ReturnType<typeof setTimeout> | undefined,
     }
   },
   mounted() {
@@ -94,15 +99,35 @@ export default {
         .then(() => {
           this.showCopySuccess = true
 
-          if (this.timeoutID) {
-            clearTimeout(this.timeoutID)
+          if (this.showCopySuccessInfoTimeoutID) {
+            clearTimeout(this.showCopySuccessInfoTimeoutID)
           }
 
-          this.timeoutID = setTimeout(() => {
+          this.showCopySuccessInfoTimeoutID = setTimeout(() => {
             this.showCopySuccess = false
-            this.timeoutID = null
+            this.showCopySuccessInfoTimeoutID = null
           }, 3000)
         })
+    },
+    async checkSession() {
+      const response = await asyncSendMessage({
+        query: 'checkSession',
+        sessionID: this.sessionID,
+      })
+
+      return typeof response === 'boolean' ? response : false
+    },
+    validateSessionID() {
+      if (this.validationDebounceTimeout) {
+        clearTimeout(this.validationDebounceTimeout)
+      }
+
+      this.validationDebounceTimeout = setTimeout(() => {
+        this.checkSession()
+          .then(sessionIdExists => {
+            this.sessionIdIsValid = sessionIdExists
+          })
+      }, 1000)
     },
   },
 }

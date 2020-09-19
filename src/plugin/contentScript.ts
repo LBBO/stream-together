@@ -12,7 +12,7 @@ import {
 } from './contentScript/videoController'
 import { getPotentialSessionID, initializePlugin } from './contentScript/sessionController'
 
-const asyncSendMessage = (message: MessageType) => {
+export const asyncSendMessage = (message: MessageType) => {
   return new Promise((resolve, reject) => {
     chrome.runtime.sendMessage(message, (result) => {
       if (result.error) {
