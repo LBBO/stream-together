@@ -4,7 +4,6 @@ export const sendMessageToActiveTab = async (message: object): Promise<object> =
       // Get the current active tab
       chrome.tabs.query({ active: true, currentWindow: true }, function (tabs) {
         if (tabs.length > 0 && typeof tabs[0].id === 'number') {
-          // Send message to check whether the script has already been injected
           chrome.tabs.sendMessage(tabs[0].id, message, function (response) {
             // If no message handler exists (i.e. content-script hasn't been injected before),
             // this callback is called right away with no arguments, so ...

@@ -52,17 +52,17 @@ export default {
     }
   },
   mounted() {
-    sendMessageToActiveTab({
-      query: 'getConnectionStatus',
-    }).then(({ isConnected, sessionID }: { isConnected: boolean, sessionID: string }) => {
-      this.isConnectedToSession = isConnected
-      this.sessionID = sessionID
-      return
-    }).then(() => {
-      console.log('Is connected to session!', this.isConnectedToSession, this.sessionID)
-    })
+    this.getCurrentStatus()
   },
   methods: {
+    getCurrentStatus() {
+      sendMessageToActiveTab({
+        query: 'getConnectionStatus',
+      }).then(({ isConnected, sessionID }: { isConnected: boolean, sessionID: string }) => {
+        this.isConnectedToSession = isConnected
+        this.sessionID = sessionID
+      })
+    },
     createSession() {
       sendMessageToActiveTab({
         query: 'createSession',
@@ -77,6 +77,8 @@ export default {
       sendMessageToActiveTab({
         query: 'joinSession',
         sessionID: this.sessionID,
+      }).then(() => {
+        this.isConnectedToSession = true
       })
     },
     leaveSession() {
@@ -84,23 +86,24 @@ export default {
         query: 'leaveSession',
       }).then(() => {
         this.sessionID = ''
+        this.isConnectedToSession = false
       })
     },
     copySessionToClipboard() {
       navigator.clipboard.writeText(this.sessionID)
-      .then(() => {
-        this.showCopySuccess = true
+        .then(() => {
+          this.showCopySuccess = true
 
-        if (this.timeoutID) {
-          clearTimeout(this.timeoutID)
-        }
+          if (this.timeoutID) {
+            clearTimeout(this.timeoutID)
+          }
 
-        this.timeoutID = setTimeout(() => {
-          this.showCopySuccess = false
-          this.timeoutID = null
-        }, 3000)
-      })
-    }
+          this.timeoutID = setTimeout(() => {
+            this.showCopySuccess = false
+            this.timeoutID = null
+          }, 3000)
+        })
+    },
   },
 }
 </script>
