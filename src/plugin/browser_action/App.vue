@@ -1,5 +1,6 @@
 <template>
   <div class="browser_action">
+    <OptionsLink />
     <h1>Stream Together</h1>
     <ManageSession />
   </div>
@@ -7,9 +8,11 @@
 
 <script lang="ts">
 import ManageSession from './components/ManageSession.vue'
+import OptionsLink from './components/OptionsLink.vue'
 export default {
   name: 'App',
   components: {
+    OptionsLink,
     ManageSession,
   },
 }
