@@ -23,13 +23,19 @@
       v-model="sessionID"
       @change="validateSessionID"
     />
-    <span
+    <a
       v-if="isConnectedToSession"
       class="cope-session-id-to-clipboard"
       @click="copySessionToClipboard"
     >
       Copy
-    </span>
+    </a>
+  </div>
+  <div
+    v-if="showCopySuccess"
+    class="copy-success"
+  >
+    ✔ Copied session ID
   </div>
   <button
     v-if="!isConnectedToSession"
@@ -146,5 +152,11 @@ export default {
     cursor: pointer;
     padding: 0.75em;
   }
+}
+
+.copy-success {
+  color: green;
+  width: 100%;
+  text-align: center;
 }
 </style>
