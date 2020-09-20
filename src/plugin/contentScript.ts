@@ -1,9 +1,18 @@
 import Port = chrome.runtime.Port
 import type { VideoEvent } from '../server/VideoEvent'
 import type { MessageType } from './MessageType'
-import { acceptableTimeDifferenceBetweenClientsInSeconds } from './config'
+import { listenForBrowserActionEvents } from './contentScript/listenForBrowserActionEvents'
+import {
+  pause,
+  play,
+  setNewVideoTimeIfNecessary,
+  setupVideoEventHandlers,
+  SkipEvents,
+  skipEvents,
+} from './contentScript/videoController'
+import { getPotentialSessionID, initializePlugin } from './contentScript/sessionController'
 
-const asyncSendMessage = (message: MessageType) => {
+export const asyncSendMessage = (message: MessageType): Promise<unknown> => {
   return new Promise((resolve, reject) => {
     chrome.runtime.sendMessage(message, (result) => {
       if (result.error) {
@@ -32,7 +41,9 @@ const registerNewSession = async (): Promise<string> => {
   }
 
   const hasResult = (o: unknown): o is { result: string } => {
-    return typeof response === 'object' && response !== null && typeof (o as { result: unknown }).result === 'string'
+    return typeof response === 'object' && response !== null && typeof (
+      o as { result: unknown }
+    ).result === 'string'
   }
 
   if (hasResult(response)) {
@@ -50,21 +61,7 @@ const sendCheckSessionMessage = async (sessionID: string): Promise<boolean> => {
   return typeof response === 'boolean' ? response : false
 }
 
-const switchToSession = (sessionID: string) => {
-  // Write sessionID to URL hash if no hash is set so far and if user is not on Disney Plus
-  // as this seems to break Disney Plus
-  if (!location.host.includes('disney.com') && getPotentialSessionID() === undefined) {
-    window.history.pushState('', '', `#${sessionID}`)
-  }
-  console.log({ sessionID })
-}
-
-const getPotentialSessionID = (): string | undefined => {
-  const hash = window.location.hash.substring(1)
-  return hash === '' ? undefined : hash
-}
-
-const getOrCreateSessionID = async () => {
+export const getOrCreateSessionID = async (): Promise<string> => {
   let sessionID
   const potentialSessionID = getPotentialSessionID() ?? ''
 
@@ -81,118 +78,6 @@ const getOrCreateSessionID = async () => {
   }
 
   return sessionID
-}
-
-type SkipEvents = { [key in keyof HTMLMediaElementEventMap]: boolean }
-
-const setupVideoEventHandlers = (port: Port, video: HTMLVideoElement) => {
-  const playLike = ['play'] as Array<keyof HTMLMediaElementEventMap>
-  const pauseLike = ['pause'] as Array<keyof HTMLMediaElementEventMap>
-  const seekLike = ['seeking'] as Array<keyof HTMLMediaElementEventMap>
-
-  const skipEvents = [...playLike, ...pauseLike, ...seekLike].reduce((skipEvents, eventName) => (
-    {
-      ...skipEvents,
-      [eventName]: false,
-    }
-  ), {} as SkipEvents)
-
-  const registerEvent = (eventType: string, eventName: keyof SkipEvents) => {
-    const listener = () => {
-      if (!skipEvents[eventName]) {
-        console.log(`Sending ${eventName} event`)
-        const videoTime = video.currentTime
-        port.postMessage({
-          query: 'videoEvent',
-          payload: {
-            type: eventType,
-            data: { videoTime },
-          },
-        })
-      } else {
-        console.info(`Skipping ${eventName} event`)
-        skipEvents[eventName] = false
-      }
-    }
-    video?.addEventListener(eventName, listener)
-
-    return () => video?.removeEventListener(eventName, listener)
-  }
-
-  const playEventRemovers = playLike.map(eventName =>
-    registerEvent('playLikeEvent', eventName),
-  )
-
-  const pauseEventRemovers = pauseLike.map(eventName =>
-    registerEvent('pauseLikeEvent', eventName),
-  )
-
-  const seekEventRemovers = seekLike.map(eventName =>
-    registerEvent('seekLikeEvent', eventName),
-  )
-
-  const removeEventListeners = () => {
-    [...playEventRemovers, ...pauseEventRemovers, ...seekEventRemovers].forEach(remover => remover())
-  }
-
-  return { skipEvents, removeEventListeners }
-}
-
-const getDisneyPlusPlayPauseElement = () => document.querySelector<HTMLButtonElement>(
-  'div > div > div.controls__footer.display-flex > div.controls__footer__wrapper.display-flex >' +
-  ' div.controls__center > button.control-icon-btn.play-icon.play-pause-icon',
-)
-
-const play = (video: HTMLVideoElement) => {
-  if (video.paused) {
-    console.log('playing')
-    const disneyPlusPlayPauseButton = getDisneyPlusPlayPauseElement()
-    if (disneyPlusPlayPauseButton) {
-      disneyPlusPlayPauseButton.click()
-    } else {
-      video.play()
-    }
-  }
-}
-
-const pause = (video: HTMLVideoElement) => {
-  if (!video.paused) {
-    console.log('pausing')
-    const disneyPlusPlayPauseButton = getDisneyPlusPlayPauseElement()
-    if (disneyPlusPlayPauseButton) {
-      disneyPlusPlayPauseButton.click()
-    } else {
-      video.pause()
-    }
-  }
-}
-
-const setNewVideoTimeIfNecessary = (
-  video: HTMLVideoElement,
-  shouldSkipEvents: SkipEvents,
-  newVideoTime?: number,
-  force = false,
-) => {
-  if (
-    typeof newVideoTime === 'number' &&
-    (
-      force || Math.abs(video.currentTime - newVideoTime) > acceptableTimeDifferenceBetweenClientsInSeconds
-    )
-  ) {
-    shouldSkipEvents.seeking = true
-    video.currentTime = newVideoTime
-  }
-}
-
-const skipEvents = (skipEvents: SkipEvents, ...eventNames: Array<keyof SkipEvents>): void => {
-  const keys = Object.keys(skipEvents) as Array<keyof SkipEvents>
-  keys.forEach(key => {
-    skipEvents[key] = false
-  })
-
-  eventNames.forEach(eventName => {
-    skipEvents[eventName] = true
-  })
 }
 
 const onSync = (
@@ -281,8 +166,7 @@ const onForeignVideoEvent = (
   }
 }
 
-
-const sendSetupSocketMessage = async (sessionID: string, video: HTMLVideoElement) => {
+export const sendSetupSocketMessage = async (sessionID: string, video: HTMLVideoElement): Promise<() => void> => {
   const port = chrome.runtime.connect({ name: 'stream-together' })
 
   port.postMessage({
@@ -301,58 +185,49 @@ const sendSetupSocketMessage = async (sessionID: string, video: HTMLVideoElement
     onForeignVideoEvent(video, skipEvents, message, port)
   })
 
-  console.log('Sync function:', () => triggerSync(video, port, skipEvents))
-}
-
-const initializePlugin = async () => {
-  const videoElements = document.querySelectorAll('video')
-
-  if (videoElements.length >= 1) {
-    console.log('setting up plugin')
-    const chosenVideo = videoElements[0]
-    const sessionID = await getOrCreateSessionID()
-    await switchToSession(sessionID)
-
-    await sendSetupSocketMessage(sessionID, chosenVideo)
-    return true
-  } else {
-    return false
+  // Return method to leave session. Said method must disconnect the port (causing the WebSocket to be disconnected)
+  // and must then remove the event listeners, as a manual disconnect doesn't fire the onDisconnect handler.
+  return () => {
+    console.log('Manually disconnecting port and removing event listeners')
+    port.disconnect()
+    removeEventListeners()
   }
 }
 
 /**
  * Observes DOM and looks for first video. As soon as a video element is found, the plugin is initialized.
  */
-const initializeForFirstVideo = () => {
-  const obsRef: { current?: MutationObserver } = { current: undefined }
+const joinPreExistingSessionASAP = () => {
+  const potentialSessionID = getPotentialSessionID()
 
-  obsRef.current = new MutationObserver(() => {
-    const firstVideo = document.querySelector('video')
+  // If session ID is already set, initialize plugin immediately.
+  if (potentialSessionID !== undefined) {
+    const obsRef: { current?: MutationObserver } = { current: undefined }
 
-    if (firstVideo) {
-      obsRef.current?.disconnect()
+    obsRef.current = new MutationObserver(() => {
+      const firstVideo = document.querySelector('video')
 
-      // If session ID is already set, initialize plugin immediately. Otherwise,
-      // wait for user to interact with video
-      const potentialSessionID = getPotentialSessionID()
-      if (potentialSessionID !== undefined) {
+      if (firstVideo) {
+        obsRef.current?.disconnect()
         initializePlugin().catch(console.error)
-      } else {
-        firstVideo.addEventListener('play', () => {
-          initializePlugin().catch(console.error)
-        }, { once: true })
       }
-    }
-  })
+    })
 
-  obsRef.current?.observe(document.documentElement, {
-    attributes: false,
-    attributeOldValue: false,
-    characterData: false,
-    characterDataOldValue: false,
-    childList: true,
-    subtree: true,
-  })
+    obsRef.current?.observe(document.documentElement, {
+      attributes: false,
+      attributeOldValue: false,
+      characterData: false,
+      characterDataOldValue: false,
+      childList: true,
+      subtree: true,
+    })
+  }
 }
 
-initializeForFirstVideo()
+joinPreExistingSessionASAP()
+
+listenForBrowserActionEvents(async () => {
+  const sessionID = await registerNewSession()
+  await initializePlugin(sessionID)
+  return sessionID
+}, initializePlugin)

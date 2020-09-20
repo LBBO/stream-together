@@ -55,6 +55,7 @@ module.exports = {
       patterns: [
         { from: pluginSource`public`, to: pluginDist`` },
         { from: pluginDist`options`, to: pluginDist`options` },
+        { from: pluginDist`browser_action`, to: pluginDist`browser_action` },
       ],
       options: {},
     }),

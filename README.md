@@ -5,7 +5,7 @@
 
 ## Install plugin
 Head to this project's [releases page](https://github.com/LBBO/stream-together/releases) and download the
-latest release's `stream-together-vX.X.X.zip` file.
+latest release's `stream-together-X.X.X.zip` file.
 Extract it to some location (which you'll need to remember).
 
 Next, visit [Chrome's extensions page](chrome:///extensions)
@@ -41,23 +41,32 @@ and going to Details > Extension options, or by
 clicking on the extensions icon next to the navigation
 bar, choosing the three dots and then Options.
 
-With everything set up, just visit a website with a video on it. For most pages, the URL
-will be set automatically. If you see a long random string after a `#` in the URL,
-that is the case and you can skip the next step. Your URL should look somewhat like this:
+### Creating a session
+With everything set up, just visit a website with a video on it. You can then press on the plugin's
+logo and a popup will appear. You can now create a new session. This will often modify your URL
+by adding a random string after a `#`. The new URL might look something like this:
 
 ```
 https://www.youtube.com/watch?v=dQw4w9WgXcQ#19b9cdee-961e-4d1d-b0e9-07fe6f35ca32
 ```
 
-If it doesn't, you'll have to open the console and you'll find a `sessionID` there. Copy it
-and manually add it to your URL after a `#`. Your URL should now somewhat resemble the URL
-above.
+This link can now be shared with your friends to watch the video together! If your link hasn't been
+modified, you will need to share the link and session ID separately. The session ID can be found in the
+same popup you used to create the session.
 
-This link can now be shared with your friends to watch the video together!
-
-The session ID isn't always added automatically, as it can cause some websites
+It isn't always added automatically, as it can cause some websites
 to break (such as Disney Plus, currently). I am looking for a better solution but suggestions are
 always welcome!
+
+### Joining a session
+Open the link you were sent. If it already contains the session ID (see [_Creating a session_](#creating-a-session)) your
+videos should sync up automatically. If you received a session ID separately, click on the plugin's
+logo and paste the session ID into the input field. After it has been validated, you will be able to
+click on `Join Session` and your videos will be synced up from there on.
+
+### Leaving a session
+You automatically leave your session when the tab closes. To leave it without closing the tab, just
+click on the plugin's logo and use the `Leave session` button.
 
 ## Run tests
 

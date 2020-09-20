@@ -1,8 +1,5 @@
-// TODO: get version number from actual package.json
-// import packageJSON from '../../../package.json'
-const packageJSON = {
-  version: '0.1.3',
-}
+// This import fails in dev mode but succeeds when options page is built normally
+import packageJSON from '../../../package.json'
 
 export type Options = {
   version: string,
@@ -16,6 +13,8 @@ export const defaultOptions: Options = {
 
 const localStorageKey = 'stream-together-options'
 
+// This function explicitly expects any input and parses the options out of it
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getOptionsFromAnything = (input: any): Options => {
   const inputOptions: Partial<Options> = {}
 
@@ -33,7 +32,7 @@ const getOptionsFromAnything = (input: any): Options => {
 }
 
 const getOptionsFromLocalStorage = (): Options => {
-  const localStorageItem = JSON.parse(localStorage.getItem(localStorageKey) ?? 'null') as any
+  const localStorageItem = JSON.parse(localStorage.getItem(localStorageKey) ?? 'null') as unknown
 
   return getOptionsFromAnything(localStorageItem)
 }
