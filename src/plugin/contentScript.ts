@@ -3,14 +3,13 @@ import type { VideoEvent } from '../server/VideoEvent'
 import type { MessageType } from './MessageType'
 import { listenForBrowserActionEvents } from './contentScript/listenForBrowserActionEvents'
 import {
-  pause,
-  play,
   setNewVideoTimeIfNecessary,
   setupVideoEventHandlers,
   SkipEvents,
   skipEvents,
 } from './contentScript/videoController'
 import { getPotentialSessionID, initializePlugin } from './contentScript/sessionController'
+import { getVideoControls, VideoControls } from './contentScript/playerAdaption'
 
 export const asyncSendMessage = (message: MessageType): Promise<unknown> => {
   return new Promise((resolve, reject) => {
@@ -82,6 +81,7 @@ export const getOrCreateSessionID = async (): Promise<string> => {
 
 const onSync = (
   video: HTMLVideoElement,
+  videoControls: VideoControls,
   port: Port,
   shouldSkipEvents: SkipEvents,
   wasPreviouslyPlaying: boolean,
@@ -93,10 +93,10 @@ const onSync = (
   }
 
   if (!skipSeek) {
-    setNewVideoTimeIfNecessary(video, shouldSkipEvents, videoTime, true)
+    setNewVideoTimeIfNecessary(video, videoControls, shouldSkipEvents, videoTime, true)
   }
 
-  pause(video)
+  videoControls.pause()
 
   const sendSyncCompleteEvent = () => {
     port.postMessage({
@@ -115,7 +115,7 @@ const onSync = (
   }
 }
 
-const triggerSync = (video: HTMLVideoElement, port: Port, shouldSkipEvents: SkipEvents) => {
+const triggerSync = (video: HTMLVideoElement, videoControls: VideoControls, port: Port, shouldSkipEvents: SkipEvents) => {
   const videoTime = video.currentTime
   const wasPreviouslyPlaying = !video.paused
   port.postMessage({
@@ -125,38 +125,43 @@ const triggerSync = (video: HTMLVideoElement, port: Port, shouldSkipEvents: Skip
       data: { videoTime, wasPreviouslyPlaying },
     },
   })
-  onSync(video, port, shouldSkipEvents, wasPreviouslyPlaying, videoTime, true)
+  onSync(video, videoControls, port, shouldSkipEvents, wasPreviouslyPlaying, videoTime, true)
 }
 
 const onForeignVideoEvent = (
-  video: HTMLVideoElement, shouldSkipEvents: SkipEvents, message: VideoEvent, port: Port) => {
+  video: HTMLVideoElement,
+  shouldSkipEvents: SkipEvents,
+  message: VideoEvent,
+  port: Port,
+  videoControls: VideoControls,
+) => {
   const videoTime: number | undefined = message?.data?.videoTime
 
   if (video) {
     switch (message.type) {
       case 'playLikeEvent':
         skipEvents(shouldSkipEvents, 'play')
-        setNewVideoTimeIfNecessary(video, shouldSkipEvents, videoTime)
-        play(video)
+        setNewVideoTimeIfNecessary(video, videoControls, shouldSkipEvents, videoTime)
+        videoControls.play()
         console.info('play', message)
         break
       case 'sync':
-        onSync(video, port, shouldSkipEvents, message.data?.wasPreviouslyPlaying ?? false, videoTime)
+        onSync(video, videoControls, port, shouldSkipEvents, message.data?.wasPreviouslyPlaying ?? false, videoTime)
         console.info('syncing', message)
         break
       case 'pauseLikeEvent':
         skipEvents(shouldSkipEvents, 'pause')
-        setNewVideoTimeIfNecessary(video, shouldSkipEvents, videoTime)
-        pause(video)
+        setNewVideoTimeIfNecessary(video, videoControls, shouldSkipEvents, videoTime)
+        videoControls.pause()
         console.info('pause', message)
         break
       case 'seekLikeEvent':
-        setNewVideoTimeIfNecessary(video, shouldSkipEvents, videoTime)
+        setNewVideoTimeIfNecessary(video, videoControls, shouldSkipEvents, videoTime)
         console.info('seek', message)
         break
       case 'syncRequest':
         console.log('SyncRequest')
-        triggerSync(video, port, shouldSkipEvents)
+        triggerSync(video, videoControls, port, shouldSkipEvents)
         break
       default:
         console.info(message)
@@ -176,13 +181,15 @@ export const sendSetupSocketMessage = async (sessionID: string, video: HTMLVideo
 
   const { skipEvents, removeEventListeners } = setupVideoEventHandlers(port, video)
 
+  const videoControls = getVideoControls(video)
+
   port.onDisconnect.addListener(() => {
     console.log('Port disconnected; removing event listeners')
     removeEventListeners()
   })
 
   port.onMessage.addListener((message) => {
-    onForeignVideoEvent(video, skipEvents, message, port)
+    onForeignVideoEvent(video, skipEvents, message, port, videoControls)
   })
 
   // Return method to leave session. Said method must disconnect the port (causing the WebSocket to be disconnected)
