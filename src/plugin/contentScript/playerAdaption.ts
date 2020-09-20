@@ -88,22 +88,39 @@ const getControlsForNetflix = (video: HTMLVideoElement): VideoControls => {
   }
 }
 
-export const getDisneyPlusPlayPauseElement = () => document.querySelector<HTMLButtonElement>(
-  'div > div > div.controls__footer.display-flex > div.controls__footer__wrapper.display-flex >' +
-  ' div.controls__center > button.control-icon-btn.play-icon.play-pause-icon',
-)
+const asyncRequestAnimationFrame = () => {
+  return new Promise<void>(resolve => {
+    requestAnimationFrame(() => resolve())
+  })
+}
+
+export const getDisneyPlusPlayPauseElement = async () => {
+  // Video controls might not be displayed. Clicking on the overlay once will make them re-appear.
+  document.querySelector<HTMLDivElement>('#hudson-wrapper .overlay.overlay__skip')?.click()
+
+  for (let i = 0; i < 100; i++) {
+    await asyncRequestAnimationFrame()
+    const el = document.querySelector<HTMLButtonElement>('button.control-icon-btn.play-pause-icon')
+    if (el) {
+      console.log(`Button found; took ${i} animation frames!`)
+      return el
+    }
+  }
+
+  throw new Error('No play / pause button found on disney plus.')
+}
 
 const getControlsForDisneyPlus = (video: HTMLVideoElement): VideoControls => {
   return {
     ...getDefaultControls(video),
-    play: () => {
+    play: async () => {
       if (video.paused) {
-        togglePlayingViaButton(getDisneyPlusPlayPauseElement())
+        togglePlayingViaButton(await getDisneyPlusPlayPauseElement())
       }
     },
-    pause: () => {
+    pause: async () => {
       if (!video.paused) {
-        togglePlayingViaButton(getDisneyPlusPlayPauseElement())
+        togglePlayingViaButton(await getDisneyPlusPlayPauseElement())
       }
     },
   }
