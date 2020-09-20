@@ -1,8 +1,5 @@
-// TODO: get version number from actual package.json
-// import packageJSON from '../../../package.json'
-const packageJSON = {
-  version: '0.1.3',
-}
+// This import fails in dev mode but succeeds when options page is built normally
+import packageJSON from '../../../package.json'
 
 export type Options = {
   version: string,
