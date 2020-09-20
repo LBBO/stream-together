@@ -151,8 +151,8 @@ const onForeignVideoEvent = (
         break
       case 'pauseLikeEvent':
         skipEvents(shouldSkipEvents, 'pause')
-        setNewVideoTimeIfNecessary(video, videoControls, shouldSkipEvents, videoTime)
         videoControls.pause()
+        setNewVideoTimeIfNecessary(video, videoControls, shouldSkipEvents, videoTime)
         console.info('pause', message)
         break
       case 'seekLikeEvent':
