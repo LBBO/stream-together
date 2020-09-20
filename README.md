@@ -5,7 +5,7 @@
 
 ## Install plugin
 Head to this project's [releases page](https://github.com/LBBO/stream-together/releases) and download the
-latest release's `stream-together-vX.X.X.zip` file.
+latest release's `stream-together-X.X.X.zip` file.
 Extract it to some location (which you'll need to remember).
 
 Next, visit [Chrome's extensions page](chrome:///extensions)
