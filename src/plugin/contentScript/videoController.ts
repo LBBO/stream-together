@@ -1,6 +1,6 @@
-import Port = chrome.runtime.Port;
-import {acceptableTimeDifferenceBetweenClientsInSeconds} from '../config'
-import { getDisneyPlusPlayPauseElement, VideoControls } from './playerAdaption'
+import Port = chrome.runtime.Port
+import { acceptableTimeDifferenceBetweenClientsInSeconds } from '../config'
+import { VideoControls } from './playerAdaption'
 
 export type SkipEvents = { [key in keyof HTMLMediaElementEventMap]: boolean }
 
@@ -50,18 +50,6 @@ export const setupVideoEventHandlers = (port: Port, video: HTMLVideoElement): {
   }
 
   return { skipEvents, removeEventListeners }
-}
-
-export const pause = (video: HTMLVideoElement): void => {
-  if (!video.paused) {
-    console.log('pausing')
-    const disneyPlusPlayPauseButton = getDisneyPlusPlayPauseElement()
-    if (disneyPlusPlayPauseButton) {
-      disneyPlusPlayPauseButton.click()
-    } else {
-      video.pause()
-    }
-  }
 }
 
 export const setNewVideoTimeIfNecessary = (
