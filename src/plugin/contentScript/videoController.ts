@@ -54,7 +54,7 @@ const getDisneyPlusPlayPauseElement = () => document.querySelector<HTMLButtonEle
   'div > div > div.controls__footer.display-flex > div.controls__footer__wrapper.display-flex >' +
   ' div.controls__center > button.control-icon-btn.play-icon.play-pause-icon',
 )
-export const play = (video: HTMLVideoElement) => {
+export const play = (video: HTMLVideoElement): void => {
   if (video.paused) {
     console.log('playing')
     const disneyPlusPlayPauseButton = getDisneyPlusPlayPauseElement()
@@ -65,7 +65,7 @@ export const play = (video: HTMLVideoElement) => {
     }
   }
 }
-export const pause = (video: HTMLVideoElement) => {
+export const pause = (video: HTMLVideoElement): void => {
   if (!video.paused) {
     console.log('pausing')
     const disneyPlusPlayPauseButton = getDisneyPlusPlayPauseElement()
@@ -81,7 +81,7 @@ export const setNewVideoTimeIfNecessary = (
   shouldSkipEvents: SkipEvents,
   newVideoTime?: number,
   force = false,
-) => {
+): void => {
   if (
     typeof newVideoTime === 'number' &&
     (

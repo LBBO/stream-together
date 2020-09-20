@@ -1,9 +1,13 @@
 import { getOrCreateSessionID, sendSetupSocketMessage } from '../contentScript'
 
+const emptyFunction = () => {
+  // Does nothing
+}
+
 const streamingStatus = {
   hasJoinedSession: false,
   currentVideo: null as HTMLVideoElement | null,
-  disconnectFromPort: () => {},
+  disconnectFromPort: emptyFunction,
   sessionID: null as string | null,
 }
 
@@ -12,7 +16,7 @@ export const getPotentialSessionID = (): string | undefined => {
   return hash === '' ? undefined : hash
 }
 
-export const addSessionIDToURL = (sessionID: string) => {
+export const addSessionIDToURL = (sessionID: string): void => {
   // Write sessionID to URL hash if no hash is set so far and if user is not on Disney Plus
   // as this seems to break Disney Plus
   if (!location.host.includes('disney.com') && getPotentialSessionID() === undefined) {
@@ -20,24 +24,24 @@ export const addSessionIDToURL = (sessionID: string) => {
   }
 }
 
-export const removeSessionIDFromURL = () => {
+export const removeSessionIDFromURL = (): void => {
   if (getPotentialSessionID() === streamingStatus.sessionID) {
     window.history.pushState('', document.title, window.location.pathname + window.location.search)
   }
 }
 
-export const leaveSession = () => {
+export const leaveSession = (): void => {
   removeSessionIDFromURL()
 
   streamingStatus.disconnectFromPort()
 
   streamingStatus.hasJoinedSession = false
   streamingStatus.currentVideo = null
-  streamingStatus.disconnectFromPort = () => {}
+  streamingStatus.disconnectFromPort = emptyFunction
   streamingStatus.sessionID = null
 }
 
-export const initializePlugin = async (sessionID?: string) => {
+export const initializePlugin = async (sessionID?: string): Promise<boolean> => {
   const videoElements = document.querySelectorAll('video')
 
   if (videoElements.length >= 1) {
@@ -54,7 +58,7 @@ export const initializePlugin = async (sessionID?: string) => {
 
     return true
   } else {
-  return false
+    return false
   }
 }
 

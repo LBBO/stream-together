@@ -12,7 +12,7 @@ import {
 } from './contentScript/videoController'
 import { getPotentialSessionID, initializePlugin } from './contentScript/sessionController'
 
-export const asyncSendMessage = (message: MessageType) => {
+export const asyncSendMessage = (message: MessageType): Promise<unknown> => {
   return new Promise((resolve, reject) => {
     chrome.runtime.sendMessage(message, (result) => {
       if (result.error) {
@@ -61,7 +61,7 @@ const sendCheckSessionMessage = async (sessionID: string): Promise<boolean> => {
   return typeof response === 'boolean' ? response : false
 }
 
-export const getOrCreateSessionID = async () => {
+export const getOrCreateSessionID = async (): Promise<string> => {
   let sessionID
   const potentialSessionID = getPotentialSessionID() ?? ''
 

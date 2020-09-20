@@ -1,4 +1,4 @@
-export const sendMessageToActiveTab = async (message: object): Promise<object> => {
+export const sendMessageToActiveTab = async (message: Record<string, unknown>): Promise<Record<string, unknown>> => {
   return new Promise((resolve, reject) => {
     if (typeof chrome?.tabs?.query === 'function') {
       // Get the current active tab

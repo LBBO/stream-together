@@ -13,6 +13,8 @@ export const defaultOptions: Options = {
 
 const localStorageKey = 'stream-together-options'
 
+// This function explicitly expects any input and parses the options out of it
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getOptionsFromAnything = (input: any): Options => {
   const inputOptions: Partial<Options> = {}
 
@@ -30,7 +32,7 @@ const getOptionsFromAnything = (input: any): Options => {
 }
 
 const getOptionsFromLocalStorage = (): Options => {
-  const localStorageItem = JSON.parse(localStorage.getItem(localStorageKey) ?? 'null') as any
+  const localStorageItem = JSON.parse(localStorage.getItem(localStorageKey) ?? 'null') as unknown
 
   return getOptionsFromAnything(localStorageItem)
 }
