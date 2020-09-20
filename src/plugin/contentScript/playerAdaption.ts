@@ -1,3 +1,5 @@
+import { SkippableVideoControls } from './videoController'
+
 export type VideoControls = {
   play: () => void
   pause: () => void
@@ -8,7 +10,7 @@ const getDefaultControls = (video: HTMLVideoElement): VideoControls => (
   {
     play: () => {
       if (video.paused) {
-        video.play()
+        return video.play()
       }
     },
     pause: () => {
@@ -122,16 +124,39 @@ const getControlsForDisneyPlus = (video: HTMLVideoElement): VideoControls => {
       if (!video.paused) {
         togglePlayingViaButton(await getDisneyPlusPlayPauseElement())
       }
+
+      await asyncRequestAnimationFrame()
     },
   }
 }
 
-export const getVideoControls = (video: HTMLVideoElement): VideoControls => {
-  if (window.location.host.includes('disney')) {
-    return getControlsForDisneyPlus(video)
-  } else if (window.location.host.includes('netflix')) {
-    return getControlsForNetflix(video)
-  } else {
-    return getDefaultControls(video)
+const skipEventsBeforeTriggeringThem = (oldControls: VideoControls, video: HTMLVideoElement): SkippableVideoControls => ({
+  play: shouldSkipEvents => {
+    if (video.paused) {
+      shouldSkipEvents.play = true
+      oldControls.play()
+    }
+  },
+  pause: shouldSkipEvents => {
+    if (!video.paused) {
+      shouldSkipEvents.pause = true
+      oldControls.pause()
+    }
+  },
+  seek: (shouldSkipEvents, time) => {
+    shouldSkipEvents.seeking = true
+    oldControls.seek(time)
   }
+})
+
+export const getVideoControls = (video: HTMLVideoElement): SkippableVideoControls => {
+  let controls = getDefaultControls(video)
+
+  if (window.location.host.includes('disney')) {
+    controls = getControlsForDisneyPlus(video)
+  } else if (window.location.host.includes('netflix')) {
+    controls = getControlsForNetflix(video)
+  }
+
+  return skipEventsBeforeTriggeringThem(controls, video)
 }

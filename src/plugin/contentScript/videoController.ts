@@ -1,8 +1,14 @@
 import Port = chrome.runtime.Port
 import { acceptableTimeDifferenceBetweenClientsInSeconds } from '../config'
-import { VideoControls } from './playerAdaption'
+import { getVideoControls, VideoControls } from './playerAdaption'
+import { triggerSync } from '../contentScript'
 
 export type SkipEvents = { [key in keyof HTMLMediaElementEventMap]: boolean }
+
+export type SkippableVideoControls = {
+  [key in keyof VideoControls]: (
+    shouldSkipEvents: SkipEvents, ...args: Parameters<VideoControls[key]>) => ReturnType<VideoControls[key]>
+}
 
 export const setupVideoEventHandlers = (port: Port, video: HTMLVideoElement): {
   removeEventListeners: () => void,
@@ -54,7 +60,7 @@ export const setupVideoEventHandlers = (port: Port, video: HTMLVideoElement): {
 
 export const setNewVideoTimeIfNecessary = (
   video: HTMLVideoElement,
-  videoControls: VideoControls,
+  videoControls: SkippableVideoControls,
   shouldSkipEvents: SkipEvents,
   newVideoTime?: number,
   force = false,
@@ -65,8 +71,7 @@ export const setNewVideoTimeIfNecessary = (
       force || Math.abs(video.currentTime - newVideoTime) > acceptableTimeDifferenceBetweenClientsInSeconds
     )
   ) {
-    shouldSkipEvents.seeking = true
-    videoControls.seek(newVideoTime)
+    videoControls.seek(shouldSkipEvents, newVideoTime)
   }
 }
 

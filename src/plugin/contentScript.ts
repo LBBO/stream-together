@@ -6,10 +6,10 @@ import {
   setNewVideoTimeIfNecessary,
   setupVideoEventHandlers,
   SkipEvents,
-  skipEvents,
+  skipEvents, SkippableVideoControls,
 } from './contentScript/videoController'
 import { getPotentialSessionID, initializePlugin } from './contentScript/sessionController'
-import { getVideoControls, VideoControls } from './contentScript/playerAdaption'
+import { getVideoControls} from './contentScript/playerAdaption'
 
 export const asyncSendMessage = (message: MessageType): Promise<unknown> => {
   return new Promise((resolve, reject) => {
@@ -81,7 +81,7 @@ export const getOrCreateSessionID = async (): Promise<string> => {
 
 const onSync = (
   video: HTMLVideoElement,
-  videoControls: VideoControls,
+  videoControls: SkippableVideoControls,
   port: Port,
   shouldSkipEvents: SkipEvents,
   wasPreviouslyPlaying: boolean,
@@ -96,7 +96,7 @@ const onSync = (
     setNewVideoTimeIfNecessary(video, videoControls, shouldSkipEvents, videoTime, true)
   }
 
-  videoControls.pause()
+  videoControls.pause(shouldSkipEvents)
 
   const sendSyncCompleteEvent = () => {
     port.postMessage({
@@ -115,7 +115,12 @@ const onSync = (
   }
 }
 
-const triggerSync = (video: HTMLVideoElement, videoControls: VideoControls, port: Port, shouldSkipEvents: SkipEvents) => {
+export const triggerSync = (
+  video: HTMLVideoElement,
+  videoControls: SkippableVideoControls,
+  port: Port,
+  shouldSkipEvents: SkipEvents,
+) => {
   const videoTime = video.currentTime
   const wasPreviouslyPlaying = !video.paused
   port.postMessage({
@@ -128,21 +133,20 @@ const triggerSync = (video: HTMLVideoElement, videoControls: VideoControls, port
   onSync(video, videoControls, port, shouldSkipEvents, wasPreviouslyPlaying, videoTime, true)
 }
 
-const onForeignVideoEvent = (
+const onForeignVideoEvent = async (
   video: HTMLVideoElement,
   shouldSkipEvents: SkipEvents,
   message: VideoEvent,
   port: Port,
-  videoControls: VideoControls,
+  videoControls: SkippableVideoControls,
 ) => {
   const videoTime: number | undefined = message?.data?.videoTime
 
   if (video) {
     switch (message.type) {
       case 'playLikeEvent':
-        skipEvents(shouldSkipEvents, 'play')
         setNewVideoTimeIfNecessary(video, videoControls, shouldSkipEvents, videoTime)
-        videoControls.play()
+        videoControls.play(shouldSkipEvents)
         console.info('play', message)
         break
       case 'sync':
@@ -150,8 +154,7 @@ const onForeignVideoEvent = (
         console.info('syncing', message)
         break
       case 'pauseLikeEvent':
-        skipEvents(shouldSkipEvents, 'pause')
-        videoControls.pause()
+        videoControls.pause(shouldSkipEvents)
         setNewVideoTimeIfNecessary(video, videoControls, shouldSkipEvents, videoTime)
         console.info('pause', message)
         break
