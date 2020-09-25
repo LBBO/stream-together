@@ -120,7 +120,7 @@ export const triggerSync = (
   videoControls: SkippableVideoControls,
   port: Port,
   shouldSkipEvents: SkipEvents,
-) => {
+): void => {
   const videoTime = video.currentTime
   const wasPreviouslyPlaying = !video.paused
   port.postMessage({

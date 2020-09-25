@@ -96,7 +96,7 @@ const asyncRequestAnimationFrame = () => {
   })
 }
 
-export const getDisneyPlusPlayPauseElement = async () => {
+export const getDisneyPlusPlayPauseElement = async (): Promise<HTMLButtonElement> => {
   // Video controls might not be displayed. Clicking on the overlay once will make them re-appear.
   document.querySelector<HTMLDivElement>('#hudson-wrapper .overlay.overlay__skip')?.click()
 
@@ -146,7 +146,7 @@ const skipEventsBeforeTriggeringThem = (oldControls: VideoControls, video: HTMLV
   seek: (shouldSkipEvents, time) => {
     shouldSkipEvents.seeking = true
     oldControls.seek(time)
-  }
+  },
 })
 
 export const getVideoControls = (video: HTMLVideoElement): SkippableVideoControls => {

@@ -1,7 +1,6 @@
 import Port = chrome.runtime.Port
 import { acceptableTimeDifferenceBetweenClientsInSeconds } from '../config'
-import { getVideoControls, VideoControls } from './playerAdaption'
-import { triggerSync } from '../contentScript'
+import { VideoControls } from './playerAdaption'
 
 export type SkipEvents = { [key in keyof HTMLMediaElementEventMap]: boolean }
 
