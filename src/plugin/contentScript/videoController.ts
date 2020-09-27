@@ -1,7 +1,13 @@
 import Port = chrome.runtime.Port
 import { acceptableTimeDifferenceBetweenClientsInSeconds } from '../config'
+import { VideoControls } from './playerAdaption'
 
 export type SkipEvents = { [key in keyof HTMLMediaElementEventMap]: boolean }
+
+export type SkippableVideoControls = {
+  [key in keyof VideoControls]: (
+    shouldSkipEvents: SkipEvents, ...args: Parameters<VideoControls[key]>) => ReturnType<VideoControls[key]>
+}
 
 export const setupVideoEventHandlers = (port: Port, video: HTMLVideoElement): {
   removeEventListeners: () => void,
@@ -50,34 +56,10 @@ export const setupVideoEventHandlers = (port: Port, video: HTMLVideoElement): {
 
   return { skipEvents, removeEventListeners }
 }
-const getDisneyPlusPlayPauseElement = () => document.querySelector<HTMLButtonElement>(
-  'div > div > div.controls__footer.display-flex > div.controls__footer__wrapper.display-flex >' +
-  ' div.controls__center > button.control-icon-btn.play-icon.play-pause-icon',
-)
-export const play = (video: HTMLVideoElement): void => {
-  if (video.paused) {
-    console.log('playing')
-    const disneyPlusPlayPauseButton = getDisneyPlusPlayPauseElement()
-    if (disneyPlusPlayPauseButton) {
-      disneyPlusPlayPauseButton.click()
-    } else {
-      video.play()
-    }
-  }
-}
-export const pause = (video: HTMLVideoElement): void => {
-  if (!video.paused) {
-    console.log('pausing')
-    const disneyPlusPlayPauseButton = getDisneyPlusPlayPauseElement()
-    if (disneyPlusPlayPauseButton) {
-      disneyPlusPlayPauseButton.click()
-    } else {
-      video.pause()
-    }
-  }
-}
+
 export const setNewVideoTimeIfNecessary = (
   video: HTMLVideoElement,
+  videoControls: SkippableVideoControls,
   shouldSkipEvents: SkipEvents,
   newVideoTime?: number,
   force = false,
@@ -88,10 +70,10 @@ export const setNewVideoTimeIfNecessary = (
       force || Math.abs(video.currentTime - newVideoTime) > acceptableTimeDifferenceBetweenClientsInSeconds
     )
   ) {
-    shouldSkipEvents.seeking = true
-    video.currentTime = newVideoTime
+    videoControls.seek(shouldSkipEvents, newVideoTime)
   }
 }
+
 export const skipEvents = (skipEvents: SkipEvents, ...eventNames: Array<keyof SkipEvents>): void => {
   const keys = Object.keys(skipEvents) as Array<keyof SkipEvents>
   keys.forEach(key => {

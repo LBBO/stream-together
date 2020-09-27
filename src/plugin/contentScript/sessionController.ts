@@ -19,7 +19,7 @@ export const getPotentialSessionID = (): string | undefined => {
 export const addSessionIDToURL = (sessionID: string): void => {
   // Write sessionID to URL hash if no hash is set so far and if user is not on Disney Plus
   // as this seems to break Disney Plus
-  if (!location.host.includes('disney.com') && getPotentialSessionID() === undefined) {
+  if (!location.host.includes('disney') && getPotentialSessionID() === undefined) {
     window.history.pushState('', document.title, `#${sessionID}`)
   }
 }
