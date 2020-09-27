@@ -34,12 +34,16 @@ in WSL. It needs to be executed via the shell (integrated shell is fine), but
 the Run tab won't do it.
 
 ## 🚀 Usage
-If your server is not running on localhost, you'll need
-to open the plug-in options by either visiting
-[Chrome's extensions page](chrome:///extensions)
-and going to Details > Extension options, or by
-clicking on the extensions icon next to the navigation
-bar, choosing the three dots and then Options.
+If your server is not running on `localhost:3000`, you'll need
+to open the plug-in options and set the backend URL to your backend's URL.
+
+There are three possibilities to get to the plug-in options:
+
+1. Click on the plug-in logo and then on the gear wheel in the top right corner.
+2. Right-click on the plug-in logo (or click on the extensions button - which looks like a
+puzzle piece - and then on the three dots) and choose "Options"
+3. Visit [Chrome's extensions page](chrome:///extensions), click on "Details" for stream-together
+and then click on "Extension options"
 
 ### Creating a session
 With everything set up, just visit a website with a video on it. You can then press on the plugin's
@@ -60,7 +64,8 @@ always welcome!
 
 ### Joining a session
 Open the link you were sent. If it already contains the session ID (see [_Creating a session_](#creating-a-session)) your
-videos should sync up automatically. If you received a session ID separately, click on the plugin's
+videos should sync up automatically (if it doesn't, just copy the session ID and pretend it was sent to you separately).
+If you received a session ID separately, click on the plugin's
 logo and paste the session ID into the input field. After it has been validated, you will be able to
 click on `Join Session` and your videos will be synced up from there on.
 
