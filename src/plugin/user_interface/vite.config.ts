@@ -1,6 +1,7 @@
 export default {
   root: './',
-  outDir: 'dist/plugin/browser_action',
+  outDir: 'dist/plugin',
   sourcemap: true,
   base: '',
+  assetsDir: 'assets',
 }

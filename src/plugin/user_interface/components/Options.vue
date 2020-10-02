@@ -9,10 +9,10 @@
 </template>
 
 <script lang="ts">
-import OptionsForm from './components/OptionsForm.vue'
+import OptionsForm from './OptionsForm.vue'
 
 export default {
-  name: 'App',
+  name: 'Options',
   components: {
     OptionsForm,
   },
@@ -38,25 +38,5 @@ export default {
     font-size: 0.9em;
     font-style: italic;
   }
-}
-</style>
-
-<style lang="scss">
-@font-face {
-  font-family: Roboto;
-  font-style: normal;
-  font-weight: 400;
-  src: url('assets/Roboto/Roboto-Regular.ttf');
-}
-
-html, body {
-  font-family: "Roboto", Arial, sans-serif;
-  padding: 0;
-  margin: 0;
-  min-height: 100vh;
-}
-
-* {
-  box-sizing: border-box;
 }
 </style>

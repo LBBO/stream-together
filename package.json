@@ -7,17 +7,16 @@
     "buildServer": "tsc",
     "devServer": "nodemon startServer",
     "lint": "eslint src",
-    "buildOptions": "vite build --config src/plugin/options_page/vite.config.ts",
-    "devOptions": "vite --config src/plugin/options_page/vite.config.ts",
-    "buildBrowserAction": "vite build --config src/plugin/browser_action/vite.config.ts",
-    "devBrowserAction": "vite --config src/plugin/browser_action/vite.config.ts",
+    "buildUI": "vite build --config src/plugin/user_interface/vite.config.ts",
+    "devUI": "vite --config src/plugin/user_interface/vite.config.ts",
     "buildScriptsAndWrapPlugin": "webpack",
     "watchScriptsAndWrapPlugin": "webpack --watch",
-    "buildPlugin": "npm run buildOptions && npm run buildBrowserAction && npm run buildScriptsAndWrapPlugin"
+    "buildPlugin": "npm run buildUI && npm run buildScriptsAndWrapPlugin"
   },
   "dependencies": {
     "uuid": "^8.2.0",
-    "vue": "^3.0.0-rc.1"
+    "vue": "^3.0.0-rc.1",
+    "vue-router": "^4.0.0-beta.13"
   },
   "devDependencies": {
     "@types/chrome": "0.0.122",

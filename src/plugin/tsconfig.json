@@ -8,7 +8,7 @@
     "./**/*.ts"
   ],
   "exclude": [
-    "./options_page",
+    "./user_interface",
     "./browser_action"
   ]
 }

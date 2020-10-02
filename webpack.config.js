@@ -53,9 +53,10 @@ module.exports = {
     }),
     new CopyPlugin({
       patterns: [
+        // Load UI created by vite
+        { from: pluginDist``, to: pluginDist`` },
+
         { from: pluginSource`public`, to: pluginDist`` },
-        { from: pluginDist`options`, to: pluginDist`options` },
-        { from: pluginDist`browser_action`, to: pluginDist`browser_action` },
       ],
       options: {},
     }),
