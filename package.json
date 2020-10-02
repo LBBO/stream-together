@@ -7,11 +7,11 @@
     "buildServer": "tsc",
     "devServer": "nodemon startServer",
     "lint": "eslint src",
-    "buildOptions": "vite build --config src/plugin/options_page/vite.config.ts",
-    "devOptions": "vite --config src/plugin/options_page/vite.config.ts",
+    "buildUI": "vite build --config src/plugin/options_page/vite.config.ts",
+    "devUI": "vite --config src/plugin/options_page/vite.config.ts",
     "buildScriptsAndWrapPlugin": "webpack",
     "watchScriptsAndWrapPlugin": "webpack --watch",
-    "buildPlugin": "npm run buildOptions && npm run buildScriptsAndWrapPlugin"
+    "buildPlugin": "npm run buildUI && npm run buildScriptsAndWrapPlugin"
   },
   "dependencies": {
     "uuid": "^8.2.0",

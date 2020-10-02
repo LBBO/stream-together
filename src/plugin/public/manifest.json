@@ -2,7 +2,7 @@
   "name": "stream-together",
   "author": "Michael David Kuckuk",
   "manifest_version": 2,
-  "options_page": "options/index.html#/options",
+  "options_page": "index.html#/options",
   "content_scripts": [
     {
       "matches": [
@@ -21,7 +21,7 @@
   },
   "browser_action": {
     "default_title": "Stream Together",
-    "default_popup": "options/index.html#/popup"
+    "default_popup": "index.html#/popup"
   },
   "permissions": [
     "http://*/",
