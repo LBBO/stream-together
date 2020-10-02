@@ -21,7 +21,7 @@
   },
   "browser_action": {
     "default_title": "Stream Together",
-    "default_popup": "browser_action/index.html"
+    "default_popup": "options/index.html#/popup"
   },
   "permissions": [
     "http://*/",

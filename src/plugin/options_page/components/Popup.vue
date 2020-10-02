@@ -7,10 +7,11 @@
 </template>
 
 <script lang="ts">
-import ManageSession from './components/ManageSession.vue'
-import OptionsLink from './components/OptionsLink.vue'
+import ManageSession from './ManageSession.vue'
+import OptionsLink from './OptionsLink.vue'
+
 export default {
-  name: 'App',
+  name: 'Popup',
   components: {
     OptionsLink,
     ManageSession,
@@ -32,29 +33,5 @@ export default {
     margin-bottom: 0.3em;
     font-size: 2.5em;
   }
-}
-</style>
-
-<style lang="scss">
-@font-face {
-  font-family: Roboto;
-  font-style: normal;
-  font-weight: 400;
-  src: url('assets/Roboto/Roboto-Regular.ttf');
-}
-
-html, body {
-  font-family: "Roboto", Arial, sans-serif;
-  padding: 0;
-  margin: 0;
-  min-height: 100vh;
-
-  input:disabled {
-    color: #AAA;
-  }
-}
-
-* {
-  box-sizing: border-box;
 }
 </style>
