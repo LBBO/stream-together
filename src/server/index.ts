@@ -12,7 +12,6 @@ const app = express_ws(express()).app
 app.use(express.json({
   inflate: false,
 }))
-app.use(express.static('./public'))
 app.use(morgan('common'))
 
 app.get('/', (req, res) => {

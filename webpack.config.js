@@ -57,6 +57,7 @@ module.exports = {
         { from: pluginDist``, to: pluginDist`` },
 
         { from: pluginSource`public`, to: pluginDist`` },
+        { from: pluginSource`user_interface/assets/icon`, to: pluginDist`assets/icon` },
       ],
       options: {},
     }),
