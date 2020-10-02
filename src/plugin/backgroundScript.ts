@@ -1,5 +1,5 @@
 import type { MessageType } from './MessageType'
-import { getOptions } from './options_page/options'
+import { getOptions } from './user_interface/options'
 
 const noServerUrl = () => new Error('No Server URL found! Please configure a server URL in the plugin options!')
 
