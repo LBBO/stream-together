@@ -2,7 +2,7 @@
   "name": "stream-together",
   "author": "Michael David Kuckuk",
   "manifest_version": 2,
-  "options_page": "options/index.html",
+  "options_page": "options/index.html#/options",
   "content_scripts": [
     {
       "matches": [
