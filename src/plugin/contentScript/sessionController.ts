@@ -1,4 +1,9 @@
-import { getOrCreateSessionID, sendSetupSocketMessage } from '../contentScript'
+import {
+  joinPreExistingSessionASAP,
+  sendCheckSessionMessage,
+  sendSetupSocketMessage,
+} from '../contentScript'
+import { onElementRemoved } from './onElementRemoved'
 
 const emptyFunction = () => {
   // Does nothing
@@ -55,12 +60,18 @@ export const initializePlugin = async (sessionID?: string): Promise<string | und
     } else {
       await addSessionIDToURL(usedSessionID)
 
-    const disconnectFromPort = await sendSetupSocketMessage(usedSessionID, chosenVideo)
+      const disconnectFromPort = await sendSetupSocketMessage(usedSessionID, chosenVideo)
 
-    streamingStatus.hasJoinedSession = true
-    streamingStatus.currentVideo = chosenVideo
-    streamingStatus.disconnectFromPort = disconnectFromPort
-    streamingStatus.sessionID = usedSessionID
+      onElementRemoved(chosenVideo, () => {
+        console.log(`video removed`)
+        disconnectFromPort()
+        joinPreExistingSessionASAP(usedSessionID)
+      })
+
+      streamingStatus.hasJoinedSession = true
+      streamingStatus.currentVideo = chosenVideo
+      streamingStatus.disconnectFromPort = disconnectFromPort
+      streamingStatus.sessionID = usedSessionID
 
       return usedSessionID
     }

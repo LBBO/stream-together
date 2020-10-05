@@ -53,7 +53,7 @@ const registerNewSession = async (): Promise<string> => {
   }
 }
 
-const sendCheckSessionMessage = async (sessionID: string): Promise<boolean> => {
+export const sendCheckSessionMessage = async (sessionID: string): Promise<boolean> => {
   const response = await asyncSendMessage({
     query: 'checkSession',
     sessionID,
@@ -189,8 +189,8 @@ export const sendSetupSocketMessage = async (sessionID: string, video: HTMLVideo
 /**
  * Observes DOM and looks for first video. As soon as a video element is found, the plugin is initialized.
  */
-const joinPreExistingSessionASAP = () => {
-  const potentialSessionID = getPotentialSessionID()
+export const joinPreExistingSessionASAP = (sessionID?: string) => {
+  const potentialSessionID = sessionID ?? getPotentialSessionID()
 
   // If session ID is already set, initialize plugin immediately.
   if (potentialSessionID !== undefined) {
@@ -201,7 +201,7 @@ const joinPreExistingSessionASAP = () => {
 
       if (firstVideo) {
         obsRef.current?.disconnect()
-        initializePlugin().catch(console.error)
+        initializePlugin(potentialSessionID).catch(console.error)
       }
     })
 
