@@ -6,7 +6,8 @@ import {
   setNewVideoTimeIfNecessary,
   setupVideoEventHandlers,
   SkipEvents,
-  skipEvents, SkippableVideoControls,
+  skipEvents,
+  SkippableVideoControls,
 } from './contentScript/videoController'
 import { getPotentialSessionID, initializePlugin } from './contentScript/sessionController'
 import { getVideoControls} from './contentScript/playerAdaption'
@@ -40,7 +41,7 @@ const registerNewSession = async (): Promise<string> => {
   }
 
   const hasResult = (o: unknown): o is { result: string } => {
-    return typeof response === 'object' && response !== null && typeof (
+    return typeof o === 'object' && o !== null && typeof (
       o as { result: unknown }
     ).result === 'string'
   }
