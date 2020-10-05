@@ -41,13 +41,19 @@ export const leaveSession = (): void => {
   streamingStatus.sessionID = null
 }
 
-export const initializePlugin = async (sessionID?: string): Promise<boolean> => {
+export const initializePlugin = async (sessionID?: string): Promise<string | undefined> => {
   const videoElements = document.querySelectorAll('video')
 
   if (videoElements.length >= 1) {
     const chosenVideo = videoElements[0]
-    const usedSessionID = sessionID ?? await getOrCreateSessionID()
-    await addSessionIDToURL(usedSessionID)
+    const usedSessionID = sessionID ?? await getPotentialSessionID()
+
+    if (usedSessionID === undefined) {
+      throw new Error('No sessionID found!')
+    } else if (!await sendCheckSessionMessage(usedSessionID)) {
+      throw new Error(`SessionID ${sessionID} does not exist!`)
+    } else {
+      await addSessionIDToURL(usedSessionID)
 
     const disconnectFromPort = await sendSetupSocketMessage(usedSessionID, chosenVideo)
 
@@ -56,9 +62,8 @@ export const initializePlugin = async (sessionID?: string): Promise<boolean> => 
     streamingStatus.disconnectFromPort = disconnectFromPort
     streamingStatus.sessionID = usedSessionID
 
-    return true
-  } else {
-    return false
+      return usedSessionID
+    }
   }
 }
 

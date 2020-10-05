@@ -61,25 +61,6 @@ const sendCheckSessionMessage = async (sessionID: string): Promise<boolean> => {
   return typeof response === 'boolean' ? response : false
 }
 
-export const getOrCreateSessionID = async (): Promise<string> => {
-  let sessionID
-  const potentialSessionID = getPotentialSessionID() ?? ''
-
-  if (potentialSessionID) {
-    const sessionExists = await sendCheckSessionMessage(potentialSessionID)
-
-    if (sessionExists) {
-      sessionID = potentialSessionID
-    }
-  }
-
-  if (!sessionID) {
-    sessionID = await registerNewSession()
-  }
-
-  return sessionID
-}
-
 const onSync = (
   video: HTMLVideoElement,
   videoControls: SkippableVideoControls,
