@@ -40,9 +40,9 @@ const evaluateMessage = async (
       sendResponse(getCurrentConnectionStatus())
       break
     default:
-      sendResponse({
-        error: 'Unknown query',
-      })
+      // TODO: throw an error if query is unknown and message is not intended for contentScript
+      // This will have to wait for issue #15
+      console.warn(`Unknown query ${request.query}`)
       break
   }
 }

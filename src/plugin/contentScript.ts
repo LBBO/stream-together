@@ -10,7 +10,7 @@ import {
   SkippableVideoControls,
 } from './contentScript/videoController'
 import { getPotentialSessionID, initializePlugin } from './contentScript/sessionController'
-import { getVideoControls} from './contentScript/playerAdaption'
+import { getVideoControls } from './contentScript/playerAdaption'
 
 export const asyncSendMessage = (message: MessageType): Promise<unknown> => {
   return new Promise((resolve, reject) => {
