@@ -1,14 +1,15 @@
 export const onElementRemoved = (element: HTMLElement, callback: () => void) => {
-  if (element.parentElement) {
+  if (document.body.contains(element)) {
     const observer = new MutationObserver(() => {
       // Node was removed from DOM if parent is null
-      if (element.parentElement === null) {
+      if (!document.body.contains(element)) {
         observer.disconnect()
         callback()
       }
     })
 
-    observer.observe(element.parentElement, {
+    // Observe entire DOM in case element isn't just deleted, but it's deleted together with it's ancestor(s)
+    observer.observe(document.documentElement, {
       attributes: false,
       attributeOldValue: false,
       characterData: false,
