@@ -9,7 +9,7 @@ const evaluateMessage = async (
   request: BrowserActionRequest,
   sendResponse: (response: unknown) => void,
   createSession: () => Promise<string>,
-  joinSession: (sessionID: string) => Promise<unknown>,
+  joinSession: ({ sessionID }: { sessionID: string }) => Promise<unknown>,
 ) => {
   switch (request.query) {
     case 'createSession':
@@ -20,7 +20,7 @@ const evaluateMessage = async (
       break
     case 'joinSession':
       if (request.sessionID) {
-        await joinSession(request.sessionID)
+        await joinSession({ sessionID: request.sessionID })
         sendResponse({
           success: true,
         })
@@ -49,7 +49,7 @@ const evaluateMessage = async (
 
 export const listenForBrowserActionEvents = (
   createSession: () => Promise<string>,
-  joinSession: (sessionID: string) => Promise<unknown>,
+  joinSession: ({ sessionID }: { sessionID: string }) => Promise<unknown>,
 ): void => {
   if (typeof chrome?.runtime?.onMessage?.addListener === 'function') {
     chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {

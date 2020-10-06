@@ -46,7 +46,17 @@ export const leaveSession = (): void => {
   streamingStatus.sessionID = null
 }
 
-export const initializePlugin = async (sessionID?: string): Promise<string | undefined> => {
+/**
+ * Chooses video element, (gets and) checks sessionID, sets up socket and updates internal state
+ * @param sessionID - SessionID to connect to
+ * @param brieflyIgnoreEventsAtEndOfVideo - (Default: false) After loading the next episode on Netflix (or other
+ * services), a user might receive events from users at the old video. Those events should be ignored for a short
+ * time as they are not relevant.
+ */
+export const initializePlugin = async ({ sessionID, brieflyIgnoreEventsAtEndOfVideo = false }: {
+  sessionID?: string
+  brieflyIgnoreEventsAtEndOfVideo?: boolean
+}): Promise<string | undefined> => {
   const videoElements = document.querySelectorAll('video')
 
   if (videoElements.length >= 1) {
@@ -60,12 +70,16 @@ export const initializePlugin = async (sessionID?: string): Promise<string | und
     } else {
       await addSessionIDToURL(usedSessionID)
 
-      const disconnectFromPort = await sendSetupSocketMessage(usedSessionID, chosenVideo)
+      const disconnectFromPort = await sendSetupSocketMessage({
+        sessionID: usedSessionID,
+        video: chosenVideo,
+        brieflyIgnoreEventsAtEndOfVideo,
+      })
 
       onElementRemoved(chosenVideo, () => {
         console.log(`video removed`)
         disconnectFromPort()
-        joinPreExistingSessionASAP(usedSessionID)
+        joinPreExistingSessionASAP({ sessionID: usedSessionID, brieflyIgnoreEventsAtEndOfVideo: true })
       })
 
       streamingStatus.hasJoinedSession = true
