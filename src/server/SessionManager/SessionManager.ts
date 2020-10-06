@@ -49,9 +49,16 @@ export const sessionManager = (sessions: SessionsObject): WebsocketRequestHandle
       console.log(`Socket from ${clientIP} closed`)
 
       if (session.webSockets.size === 0) {
-        console.log(`Session ${sessionID} is now empty. Deleting session. (Currently ${Object.values(sessions).length})`)
-        delete sessions[sessionID]
-        console.log(`Now ${Object.values(sessions).length} sessions`)
+        console.log(`Session ${sessionID} is now empty. Waiting one minute for potential re-joins before deleting it`)
+        setTimeout(() => {
+          if (session.webSockets.size === 0) {
+            console.log(`Session ${sessionID} is now empty. Deleting session. (Currently ${Object.values(sessions).length})`)
+            delete sessions[sessionID]
+            console.log(`Now ${Object.values(sessions).length} sessions`)
+          } else {
+            console.log(`Session ${sessionID} is no longer empty, so it won't be deleted.`)
+          }
+        }, 60 * 1000)
       }
     }
   }

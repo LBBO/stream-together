@@ -6,10 +6,11 @@ import {
   setNewVideoTimeIfNecessary,
   setupVideoEventHandlers,
   SkipEvents,
-  skipEvents, SkippableVideoControls,
+  skipEvents,
+  SkippableVideoControls,
 } from './contentScript/videoController'
 import { getPotentialSessionID, initializePlugin } from './contentScript/sessionController'
-import { getVideoControls} from './contentScript/playerAdaption'
+import { getVideoControls } from './contentScript/playerAdaption'
 
 export const asyncSendMessage = (message: MessageType): Promise<unknown> => {
   return new Promise((resolve, reject) => {
@@ -40,7 +41,7 @@ const registerNewSession = async (): Promise<string> => {
   }
 
   const hasResult = (o: unknown): o is { result: string } => {
-    return typeof response === 'object' && response !== null && typeof (
+    return typeof o === 'object' && o !== null && typeof (
       o as { result: unknown }
     ).result === 'string'
   }
@@ -52,31 +53,12 @@ const registerNewSession = async (): Promise<string> => {
   }
 }
 
-const sendCheckSessionMessage = async (sessionID: string): Promise<boolean> => {
+export const sendCheckSessionMessage = async (sessionID: string): Promise<boolean> => {
   const response = await asyncSendMessage({
     query: 'checkSession',
     sessionID,
   })
   return typeof response === 'boolean' ? response : false
-}
-
-export const getOrCreateSessionID = async (): Promise<string> => {
-  let sessionID
-  const potentialSessionID = getPotentialSessionID() ?? ''
-
-  if (potentialSessionID) {
-    const sessionExists = await sendCheckSessionMessage(potentialSessionID)
-
-    if (sessionExists) {
-      sessionID = potentialSessionID
-    }
-  }
-
-  if (!sessionID) {
-    sessionID = await registerNewSession()
-  }
-
-  return sessionID
 }
 
 const onSync = (
@@ -139,10 +121,16 @@ const onForeignVideoEvent = async (
   message: VideoEvent,
   port: Port,
   videoControls: SkippableVideoControls,
+  brieflyIgnoreEventsAtEndOfVideo: boolean,
 ) => {
   const videoTime: number | undefined = message?.data?.videoTime
 
-  if (video) {
+  // Ignore events from later than 5 minutes if brieflyIgnoreEventsAtEndOfVideo is true
+  if (video && (
+    !brieflyIgnoreEventsAtEndOfVideo || (
+      videoTime ?? 0
+    ) < 5 * 60
+  )) {
     switch (message.type) {
       case 'playLikeEvent':
         setNewVideoTimeIfNecessary(video, videoControls, shouldSkipEvents, videoTime)
@@ -170,12 +158,23 @@ const onForeignVideoEvent = async (
         console.info(message)
     }
   } else {
-    console.warn('no video found!')
+    if (!video) {
+      console.warn('No video found!')
+    } else {
+      console.log('Skipping event that might have come from a user in an old video')
+    }
   }
 }
 
-export const sendSetupSocketMessage = async (sessionID: string, video: HTMLVideoElement): Promise<() => void> => {
+export const sendSetupSocketMessage = async ({ sessionID, video, brieflyIgnoreEventsAtEndOfVideo }: { sessionID: string, video: HTMLVideoElement, brieflyIgnoreEventsAtEndOfVideo: boolean }): Promise<() => void> => {
   const port = chrome.runtime.connect({ name: 'stream-together' })
+
+  // Stop ignoring events from end of video after a minute. This feature is only intended to avoid issues from some
+  // users staying at the old video too long
+  const brieflyIgnoreEventsAtEndOfVideoRef = { current: brieflyIgnoreEventsAtEndOfVideo }
+  const timeout = setTimeout(() => {
+    brieflyIgnoreEventsAtEndOfVideoRef.current = false
+  }, 60 * 1000)
 
   port.postMessage({
     query: 'setupSocket',
@@ -188,17 +187,19 @@ export const sendSetupSocketMessage = async (sessionID: string, video: HTMLVideo
 
   port.onDisconnect.addListener(() => {
     console.log('Port disconnected; removing event listeners')
+    clearTimeout(timeout)
     removeEventListeners()
   })
 
   port.onMessage.addListener((message) => {
-    onForeignVideoEvent(video, skipEvents, message, port, videoControls)
+    onForeignVideoEvent(video, skipEvents, message, port, videoControls, brieflyIgnoreEventsAtEndOfVideoRef.current)
   })
 
   // Return method to leave session. Said method must disconnect the port (causing the WebSocket to be disconnected)
   // and must then remove the event listeners, as a manual disconnect doesn't fire the onDisconnect handler.
   return () => {
     console.log('Manually disconnecting port and removing event listeners')
+    clearTimeout(timeout)
     port.disconnect()
     removeEventListeners()
   }
@@ -207,8 +208,11 @@ export const sendSetupSocketMessage = async (sessionID: string, video: HTMLVideo
 /**
  * Observes DOM and looks for first video. As soon as a video element is found, the plugin is initialized.
  */
-const joinPreExistingSessionASAP = () => {
-  const potentialSessionID = getPotentialSessionID()
+export const joinPreExistingSessionASAP = ({ sessionID, brieflyIgnoreEventsAtEndOfVideo = false }: {
+  sessionID?: string
+  brieflyIgnoreEventsAtEndOfVideo?: boolean
+} = { brieflyIgnoreEventsAtEndOfVideo: false }) => {
+  const potentialSessionID = sessionID ?? getPotentialSessionID()
 
   // If session ID is already set, initialize plugin immediately.
   if (potentialSessionID !== undefined) {
@@ -219,7 +223,7 @@ const joinPreExistingSessionASAP = () => {
 
       if (firstVideo) {
         obsRef.current?.disconnect()
-        initializePlugin().catch(console.error)
+        initializePlugin({ sessionID: potentialSessionID, brieflyIgnoreEventsAtEndOfVideo }).catch(console.error)
       }
     })
 
@@ -238,6 +242,6 @@ joinPreExistingSessionASAP()
 
 listenForBrowserActionEvents(async () => {
   const sessionID = await registerNewSession()
-  await initializePlugin(sessionID)
+  await initializePlugin({ sessionID })
   return sessionID
 }, initializePlugin)

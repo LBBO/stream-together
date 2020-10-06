@@ -1,4 +1,9 @@
-import { getOrCreateSessionID, sendSetupSocketMessage } from '../contentScript'
+import {
+  joinPreExistingSessionASAP,
+  sendCheckSessionMessage,
+  sendSetupSocketMessage,
+} from '../contentScript'
+import { onElementRemoved } from './onElementRemoved'
 
 const emptyFunction = () => {
   // Does nothing
@@ -41,24 +46,49 @@ export const leaveSession = (): void => {
   streamingStatus.sessionID = null
 }
 
-export const initializePlugin = async (sessionID?: string): Promise<boolean> => {
+/**
+ * Chooses video element, (gets and) checks sessionID, sets up socket and updates internal state
+ * @param sessionID - SessionID to connect to
+ * @param brieflyIgnoreEventsAtEndOfVideo - (Default: false) After loading the next episode on Netflix (or other
+ * services), a user might receive events from users at the old video. Those events should be ignored for a short
+ * time as they are not relevant.
+ */
+export const initializePlugin = async ({ sessionID, brieflyIgnoreEventsAtEndOfVideo = false }: {
+  sessionID?: string
+  brieflyIgnoreEventsAtEndOfVideo?: boolean
+}): Promise<string | undefined> => {
   const videoElements = document.querySelectorAll('video')
 
   if (videoElements.length >= 1) {
     const chosenVideo = videoElements[0]
-    const usedSessionID = sessionID ?? await getOrCreateSessionID()
-    await addSessionIDToURL(usedSessionID)
+    const usedSessionID = sessionID ?? await getPotentialSessionID()
 
-    const disconnectFromPort = await sendSetupSocketMessage(usedSessionID, chosenVideo)
+    if (usedSessionID === undefined) {
+      throw new Error('No sessionID found!')
+    } else if (!await sendCheckSessionMessage(usedSessionID)) {
+      throw new Error(`SessionID ${sessionID} does not exist!`)
+    } else {
+      await addSessionIDToURL(usedSessionID)
 
-    streamingStatus.hasJoinedSession = true
-    streamingStatus.currentVideo = chosenVideo
-    streamingStatus.disconnectFromPort = disconnectFromPort
-    streamingStatus.sessionID = usedSessionID
+      const disconnectFromPort = await sendSetupSocketMessage({
+        sessionID: usedSessionID,
+        video: chosenVideo,
+        brieflyIgnoreEventsAtEndOfVideo,
+      })
 
-    return true
-  } else {
-    return false
+      onElementRemoved(chosenVideo, () => {
+        console.log(`video removed`)
+        disconnectFromPort()
+        joinPreExistingSessionASAP({ sessionID: usedSessionID, brieflyIgnoreEventsAtEndOfVideo: true })
+      })
+
+      streamingStatus.hasJoinedSession = true
+      streamingStatus.currentVideo = chosenVideo
+      streamingStatus.disconnectFromPort = disconnectFromPort
+      streamingStatus.sessionID = usedSessionID
+
+      return usedSessionID
+    }
   }
 }
 
