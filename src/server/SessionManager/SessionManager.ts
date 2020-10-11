@@ -1,5 +1,5 @@
 import { WebsocketRequestHandler } from 'express-ws'
-import { SessionsObject } from '../Session'
+import { SessionsObject, closeSessionIfEmpty } from '../Session'
 import { broadcastEvent, forwardEvent } from './forwardEvent'
 
 export const sessionManager = (sessions: SessionsObject): WebsocketRequestHandler => (ws, req) => {
@@ -8,7 +8,7 @@ export const sessionManager = (sessions: SessionsObject): WebsocketRequestHandle
   const session = sessions[sessionID]
 
   const intervalID = setInterval(() => {
-    // Only send ping if socked hasn't closed in the mean time
+    // Only send ping if socket hasn't closed in the mean time
     if (ws.readyState === ws.OPEN) {
       ws.send(JSON.stringify({ type: 'ping' }))
     } else {
@@ -48,18 +48,7 @@ export const sessionManager = (sessions: SessionsObject): WebsocketRequestHandle
       session.webSockets.delete(ws)
       console.log(`Socket from ${clientIP} closed`)
 
-      if (session.webSockets.size === 0) {
-        console.log(`Session ${sessionID} is now empty. Waiting one minute for potential re-joins before deleting it`)
-        setTimeout(() => {
-          if (session.webSockets.size === 0) {
-            console.log(`Session ${sessionID} is now empty. Deleting session. (Currently ${Object.values(sessions).length})`)
-            delete sessions[sessionID]
-            console.log(`Now ${Object.values(sessions).length} sessions`)
-          } else {
-            console.log(`Session ${sessionID} is no longer empty, so it won't be deleted.`)
-          }
-        }, 60 * 1000)
-      }
+      closeSessionIfEmpty(session, sessionID, sessions)
     }
   }
 
