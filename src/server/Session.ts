@@ -1,7 +1,7 @@
 import { v4 as createUuid } from 'uuid'
 import * as ws from 'ws'
 
-const EMPTY_SESSION_TIMEOUT = 90;
+const EMPTY_SESSION_TIMEOUT = 90
 
 export type Session = {
   ipAddresses: Set<string>,

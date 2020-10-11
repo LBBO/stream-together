@@ -1,4 +1,4 @@
-import { createNewSession, SessionsObject } from '../Session'
+import { createNewSession, SessionsObject, closeSessionIfEmpty } from '../Session'
 import { Request, Response } from 'express'
 
 export const createSession = (sessions: SessionsObject) => (req: Request, res: Response): void => {
@@ -10,8 +10,10 @@ export const createSession = (sessions: SessionsObject) => (req: Request, res: R
 
     res.status(201)
     res.send(session.data)
+
+    closeSessionIfEmpty(session, session.data.uuid, sessions)
   } else {
     console.log('Too many active session!', Object.values(sessions).length, Object.values(sessions))
     res.sendStatus(500)
-  }
+  }  
 }
