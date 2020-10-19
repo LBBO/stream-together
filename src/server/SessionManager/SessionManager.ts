@@ -1,5 +1,5 @@
 import { WebsocketRequestHandler } from 'express-ws'
-import { SessionsObject, closeSessionIfEmpty } from '../Session'
+import { SessionsObject, closeSessionIfViewersLeft } from '../Session'
 import { broadcastEvent, forwardEvent } from './forwardEvent'
 
 export const sessionManager = (sessions: SessionsObject): WebsocketRequestHandler => (ws, req) => {
@@ -48,7 +48,7 @@ export const sessionManager = (sessions: SessionsObject): WebsocketRequestHandle
       session.webSockets.delete(ws)
       console.log(`Socket from ${clientIP} closed`)
 
-      closeSessionIfEmpty(session, sessionID, sessions)
+      closeSessionIfViewersLeft(session, sessionID, sessions)
     }
   }
 
