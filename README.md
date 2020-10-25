@@ -4,14 +4,8 @@
 > Stream any video together with friends without worrying about synchronization
 
 ## Install plugin
-Head to this project's [releases page](https://github.com/LBBO/stream-together/releases) and download the
-latest release's `stream-together-X.X.X.zip` file.
-Extract it to some location (which you'll need to remember).
-
-Next, visit [Chrome's extensions page](chrome:///extensions)
-and enable developer mode, if you haven't already.
-Click on "Load an unpacked extension" and choose the
-extracted folder's location.
+Head to [Stream together's page on the Chrome Store](https://chrome.google.com/webstore/detail/stream-together/jkhdbmnngbiiogknojpnddmemomgjpjg)
+and follow the usual steps to install the plugin!
 
 If you're using a pre-existing backend, you can skip the next step.
 
