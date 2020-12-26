@@ -21,7 +21,6 @@
       id="sessionID"
       type="text"
       v-model="sessionID"
-      @change="validateSessionID"
     />
     <a
       v-if="isConnectedToSession"
@@ -133,10 +132,16 @@ export default {
           .then(sessionIdExists => {
             this.sessionIdIsValid = sessionIdExists
           })
-      }, 1000)
+      }, 300)
     },
   },
+  watch: {
+    sessionID() {
+      this.validateSessionID()
+    }
+  }
 }
+
 </script>
 
 <style scoped lang="scss">
