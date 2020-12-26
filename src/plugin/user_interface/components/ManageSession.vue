@@ -20,7 +20,7 @@
       :disabled="isConnectedToSession"
       id="sessionID"
       type="text"
-      v-model="sessionID"
+      v-model.trim="sessionID"
     />
     <a
       v-if="isConnectedToSession"
