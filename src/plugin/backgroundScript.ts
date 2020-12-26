@@ -12,13 +12,11 @@ const getBackendURL = async () => {
     throw noServerUrl()
   }
 
-  const urlObject = new URL(url)
-
-  return urlObject.host
+  return new URL(url)
 }
 
-const getHTTP_URL = async () => `http://${await getBackendURL()}/`
-const getSocketURL = async () => `ws://${await getBackendURL()}/`
+const getHTTP_URL = async () => (await getBackendURL()).origin + '/'
+const getSocketURL = async () => `${(await getBackendURL()).protocol === 'http' ? 'ws' : 'wss'}://${(await getBackendURL()).host}/`
 
 const createSession = async () => {
   try {
