@@ -30,4 +30,8 @@ jobs:
           NODE_ENV: development
       # Currently, build is only executed to check for TypeScript errors
       - run: npm run buildPlugin --if-present
+        env:
+          NODE_ENV: production
       - run: npm run buildServer --if-present
+        env:
+          NODE_ENV: production

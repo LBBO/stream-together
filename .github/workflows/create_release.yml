@@ -27,6 +27,8 @@ jobs:
         env:
           NODE_ENV: development
       - name: Build project # This would actually build your project, using zip for an example artifact
+        env:
+          NODE_ENV: production
         run: npm run buildPlugin --if-present
       - name: Get version number
         id: package-version
