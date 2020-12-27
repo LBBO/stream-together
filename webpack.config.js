@@ -47,7 +47,15 @@ module.exports = {
       matchers: [
         {
           matcher: /manifest\.json$/,
-          action: (currentJSON) => ({ ...currentJSON, version: packageJSON.version }),
+          action: (currentJSON) => ({
+            ...currentJSON,
+            version: packageJSON.version,
+            name: currentJSON.name + (process.env.NODE_ENV === 'production' ? '' : ' dev'),
+            browser_action: {
+              ...currentJSON.browser_action,
+              default_title: currentJSON.browser_action.default_title + (process.env.NODE_ENV === 'production' ? '' : ' dev')
+            }
+          }),
         },
       ],
     }),
