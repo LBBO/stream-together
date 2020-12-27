@@ -7,6 +7,11 @@
       <label for="backend-url">
         Backend URL
       </label>
+      <small class="error" :style="{
+        visibility: backendUrlIsValid ? 'hidden' : 'visible'
+      }">
+        Please enter a valid URL! Perhaps you forgot the <code>https://</code>?
+      </small>
       <input
         id="backend-url"
         type="url"
@@ -14,14 +19,20 @@
       />
     </fieldset>
   </form>
-  <small :class="isSaving ? '' : 'success'">
-    {{isSaving ? 'Saving settings...' : `✔ All settings saved! (${isSavingLastChanged.toLocaleTimeString()})`}}
+  <small v-if="!backendUrlIsValid" class="error">
+    Couldn't save settings because some values are invalid!
+  </small>
+  <small v-else-if="isSaving">
+    Saving settings
+  </small>
+  <small v-else class="success">
+    ✔ All settings saved! ({{ isSavingLastChanged.toLocaleTimeString() }})
   </small>
 </template>
 
 <script lang="ts">
 import { defaultOptions, getOptions, saveOptions } from '../options'
-import { defineComponent, onMounted, ref, watch } from 'vue'
+import { computed, defineComponent, onMounted, ref, watch } from 'vue'
 
 export default defineComponent({
     name: 'OptionsForm',
@@ -53,6 +64,16 @@ export default defineComponent({
         return now
       }
 
+      const validateBackendUrl = (url: string): boolean => {
+        try {
+          new URL(url)
+          return true
+        } catch (e) {
+          return false
+        }
+      }
+      const backendUrlIsValid = computed(() => validateBackendUrl(backendURL.value))
+
       watch(backendURL, async () => {
         const beginningOfSaving = setIsSaving(true)
         isSaving.value = true
@@ -68,17 +89,23 @@ export default defineComponent({
         backendURL.value = options.backendURL
       })
 
-      return { backendURL, isSaving, isSavingLastChanged }
+      return { backendURL, isSaving, isSavingLastChanged, backendUrlIsValid }
     },
   },
 )</script>
 
 <style scoped lang="scss">
+@use '../colors';
+
 fieldset {
   border-radius: 5px;
 }
 
 .success {
-  color: green;
+  color: colors.$success;
+}
+
+.error {
+  color: colors.$error;
 }
 </style>
