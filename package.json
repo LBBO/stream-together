@@ -36,8 +36,10 @@
     "express": "^4.17.1",
     "express-ws": "^4.0.0",
     "json-post-process-webpack-plugin": "^2.0.4",
+    "lint-staged": "^10.5.3",
     "morgan": "^1.10.0",
     "nodemon": "^2.0.4",
+    "prettier": "^2.2.1",
     "sass": "^1.26.10",
     "ts-loader": "^8.0.3",
     "ts-node": "^8.10.2",
@@ -48,6 +50,7 @@
     "webpack": "^4.44.1",
     "webpack-cli": "^3.3.12",
     "ws": "^7.3.1",
+    "yorkie": "^2.0.0",
     "zip-webpack-plugin": "^3.0.0"
   },
   "nodemonConfig": {
@@ -62,5 +65,14 @@
     ],
     "exec": "npm run startServer",
     "ext": "ts"
+  },
+  "gitHooks": {
+    "pre-commit": "lint-staged"
+  },
+  "lint-staged": {
+    "*.{js,jsx,vue,ts,tsx,scss}": [
+      "prettier --write --ignore-unknown",
+      "git add"
+    ]
   }
 }
