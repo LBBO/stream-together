@@ -15,6 +15,14 @@
   <label for="sessionID">
     Session ID
   </label>
+  <small
+    class="error-message"
+    :style="{
+      visibility: !isConnectedToSession && sessionIdIsValid === false ? 'visible' : 'hidden'
+    }"
+  >
+    Session could not be found!
+  </small>
   <div class="session-id-wrapper">
     <input
       :disabled="isConnectedToSession"
@@ -59,7 +67,7 @@ export default defineComponent(
       const isConnectedToSession = ref(false)
       const showCopySuccess = ref(false)
       const showCopySuccessInfoTimeoutID = ref<NodeJS.Timeout | null>(null)
-      const sessionIdIsValid = ref(false)
+      const sessionIdIsValid = ref<boolean | undefined>(undefined)
       const validationDebounceTimeout = ref<ReturnType<typeof setTimeout> | undefined>()
 
       const getCurrentStatus = () => {
@@ -75,9 +83,9 @@ export default defineComponent(
       const createSession = () => {
         sendMessageToActiveTab({
           query: 'createSession',
-        }).then(({ success, sessionID }: { success: boolean, sessionID?: string }) => {
-          if (success && sessionID) {
-            sessionID.value = sessionID
+        }).then((result: { success: boolean, sessionID?: string }) => {
+          if (result.success && result.sessionID) {
+            sessionID.value = result.sessionID
             isConnectedToSession.value = true
           }
         })
@@ -131,16 +139,15 @@ export default defineComponent(
           clearTimeout(validationDebounceTimeout.value)
         }
 
-        validationDebounceTimeout.value = setTimeout(() => {
-          checkSession()
-            .then(sessionIdExists => {
-              sessionIdIsValid.value = sessionIdExists
-            })
+        validationDebounceTimeout.value = setTimeout(async () => {
+          sessionIdIsValid.value = await checkSession()
         }, 300)
       }
 
       watch(sessionID, () => {
-        validateSessionID()
+        if (sessionID.value.length) {
+          validateSessionID()
+        }
       })
 
       return {
@@ -162,6 +169,8 @@ export default defineComponent(
 </script>
 
 <style scoped lang="scss">
+@use '../colors';
+
 .session-id-wrapper {
   display: flex;
   flex-direction: row;
@@ -177,8 +186,12 @@ export default defineComponent(
 }
 
 .copy-success {
-  color: green;
+  color: colors.$success;
   width: 100%;
   text-align: center;
+}
+
+.error-message {
+  color: colors.$error;
 }
 </style>
