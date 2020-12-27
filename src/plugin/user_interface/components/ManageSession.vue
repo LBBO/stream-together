@@ -48,100 +48,117 @@
 <script lang="ts">
 import { sendMessageToActiveTab } from '../sendMessageToActiveTab'
 import { asyncSendMessage } from '../../contentScript'
+import { defineComponent, onMounted, ref, watch } from 'vue'
 
-export default {
-  name: 'ManageSession',
-  data() {
-    return {
-      sessionID: '',
-      isConnectedToSession: false,
-      showCopySuccess: false,
-      showCopySuccessInfoTimeoutID: null,
-      sessionIdIsValid: false,
-      validationDebounceTimeout: undefined as ReturnType<typeof setTimeout> | undefined,
-    }
-  },
-  mounted() {
-    this.getCurrentStatus()
-  },
-  methods: {
-    getCurrentStatus() {
-      sendMessageToActiveTab({
-        query: 'getConnectionStatus',
-      }).then(({ isConnected, sessionID }: { isConnected: boolean, sessionID: string }) => {
-        this.isConnectedToSession = isConnected
-        this.sessionID = sessionID
-      })
-    },
-    createSession() {
-      sendMessageToActiveTab({
-        query: 'createSession',
-      }).then(({ success, sessionID }: { success: boolean, sessionID?: string }) => {
-        if (success && sessionID) {
-          this.sessionID = sessionID
-          this.isConnectedToSession = true
-        }
-      })
-    },
-    joinSession() {
-      sendMessageToActiveTab({
-        query: 'joinSession',
-        sessionID: this.sessionID,
-      }).then(() => {
-        this.isConnectedToSession = true
-      })
-    },
-    leaveSession() {
-      sendMessageToActiveTab({
-        query: 'leaveSession',
-      }).then(() => {
-        this.sessionID = ''
-        this.isConnectedToSession = false
-      })
-    },
-    copySessionToClipboard() {
-      navigator.clipboard.writeText(this.sessionID)
-        .then(() => {
-          this.showCopySuccess = true
 
-          if (this.showCopySuccessInfoTimeoutID) {
-            clearTimeout(this.showCopySuccessInfoTimeoutID)
-          }
+export default defineComponent(
+  {
+    name: 'ManageSession',
+    setup: () => {
+      const sessionID = ref('')
+      const isConnectedToSession = ref(false)
+      const showCopySuccess = ref(false)
+      const showCopySuccessInfoTimeoutID = ref<NodeJS.Timeout | null>(null)
+      const sessionIdIsValid = ref(false)
+      const validationDebounceTimeout = ref<ReturnType<typeof setTimeout> | undefined>()
 
-          this.showCopySuccessInfoTimeoutID = setTimeout(() => {
-            this.showCopySuccess = false
-            this.showCopySuccessInfoTimeoutID = null
-          }, 3000)
+      const getCurrentStatus = () => {
+        sendMessageToActiveTab({
+          query: 'getConnectionStatus',
+        }).then((result: { isConnected: boolean, sessionID: string }) => {
+          isConnectedToSession.value = result.isConnected
+          sessionID.value = result.sessionID
         })
-    },
-    async checkSession() {
-      const response = await asyncSendMessage({
-        query: 'checkSession',
-        sessionID: this.sessionID,
-      })
+      }
+      onMounted(getCurrentStatus)
 
-      return typeof response === 'boolean' ? response : false
-    },
-    validateSessionID() {
-      if (this.validationDebounceTimeout) {
-        clearTimeout(this.validationDebounceTimeout)
+      const createSession = () => {
+        sendMessageToActiveTab({
+          query: 'createSession',
+        }).then(({ success, sessionID }: { success: boolean, sessionID?: string }) => {
+          if (success && sessionID) {
+            sessionID.value = sessionID
+            isConnectedToSession.value = true
+          }
+        })
       }
 
-      this.validationDebounceTimeout = setTimeout(() => {
-        this.checkSession()
-          .then(sessionIdExists => {
-            this.sessionIdIsValid = sessionIdExists
+      const joinSession = () => {
+        sendMessageToActiveTab({
+          query: 'joinSession',
+          sessionID: sessionID.value,
+        }).then(() => {
+          isConnectedToSession.value = true
+        })
+      }
+
+      const leaveSession = () => {
+        sendMessageToActiveTab({
+          query: 'leaveSession',
+        }).then(() => {
+          sessionID.value = ''
+          isConnectedToSession.value = false
+        })
+      }
+
+      const copySessionToClipboard = () => {
+        navigator.clipboard.writeText(sessionID.value)
+          .then(() => {
+            showCopySuccess.value = true
+
+            if (showCopySuccessInfoTimeoutID.value) {
+              clearTimeout(showCopySuccessInfoTimeoutID.value)
+            }
+
+            showCopySuccessInfoTimeoutID.value = setTimeout(() => {
+              showCopySuccess.value = false
+              showCopySuccessInfoTimeoutID.value = null
+            }, 3000)
           })
-      }, 300)
+      }
+
+      const checkSession = async () => {
+        const response = await asyncSendMessage({
+          query: 'checkSession',
+          sessionID: sessionID.value,
+        })
+
+        return typeof response === 'boolean' ? response : false
+      }
+
+      const validateSessionID = () => {
+        if (validationDebounceTimeout.value) {
+          clearTimeout(validationDebounceTimeout.value)
+        }
+
+        validationDebounceTimeout.value = setTimeout(() => {
+          checkSession()
+            .then(sessionIdExists => {
+              sessionIdIsValid.value = sessionIdExists
+            })
+        }, 300)
+      }
+
+      watch(sessionID, () => {
+        validateSessionID()
+      })
+
+      return {
+        sessionID,
+        isConnectedToSession,
+        showCopySuccess,
+        showCopySuccessInfoTimeoutID,
+        sessionIdIsValid,
+        validationDebounceTimeout,
+        getCurrentStatus,
+        createSession,
+        joinSession,
+        leaveSession,
+        copySessionToClipboard,
+      }
     },
   },
-  watch: {
-    sessionID() {
-      this.validateSessionID()
-    }
-  }
-}
-
+)
 </script>
 
 <style scoped lang="scss">
