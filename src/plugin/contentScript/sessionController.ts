@@ -24,14 +24,21 @@ export const getPotentialSessionID = (): string | undefined => {
 export const addSessionIDToURL = (sessionID: string): void => {
   // Write sessionID to URL hash if no hash is set so far and if user is not on Disney Plus
   // as this seems to break Disney Plus
-  if (!location.host.includes('disney') && getPotentialSessionID() === undefined) {
+  if (
+    !location.host.includes('disney') &&
+    getPotentialSessionID() === undefined
+  ) {
     window.history.pushState('', document.title, `#${sessionID}`)
   }
 }
 
 export const removeSessionIDFromURL = (): void => {
   if (getPotentialSessionID() === streamingStatus.sessionID) {
-    window.history.pushState('', document.title, window.location.pathname + window.location.search)
+    window.history.pushState(
+      '',
+      document.title,
+      window.location.pathname + window.location.search,
+    )
   }
 }
 
@@ -53,7 +60,10 @@ export const leaveSession = (): void => {
  * services), a user might receive events from users at the old video. Those events should be ignored for a short
  * time as they are not relevant.
  */
-export const initializePlugin = async ({ sessionID, brieflyIgnoreEventsAtEndOfVideo = false }: {
+export const initializePlugin = async ({
+  sessionID,
+  brieflyIgnoreEventsAtEndOfVideo = false,
+}: {
   sessionID?: string
   brieflyIgnoreEventsAtEndOfVideo?: boolean
 }): Promise<string | undefined> => {
@@ -61,11 +71,11 @@ export const initializePlugin = async ({ sessionID, brieflyIgnoreEventsAtEndOfVi
 
   if (videoElements.length >= 1) {
     const chosenVideo = videoElements[0]
-    const usedSessionID = sessionID ?? await getPotentialSessionID()
+    const usedSessionID = sessionID ?? (await getPotentialSessionID())
 
     if (usedSessionID === undefined) {
       throw new Error('No sessionID found!')
-    } else if (!await sendCheckSessionMessage(usedSessionID)) {
+    } else if (!(await sendCheckSessionMessage(usedSessionID))) {
       throw new Error(`SessionID ${sessionID} does not exist!`)
     } else {
       await addSessionIDToURL(usedSessionID)
@@ -79,7 +89,10 @@ export const initializePlugin = async ({ sessionID, brieflyIgnoreEventsAtEndOfVi
       onElementRemoved(chosenVideo, () => {
         console.log(`video removed`)
         disconnectFromPort()
-        joinPreExistingSessionASAP({ sessionID: usedSessionID, brieflyIgnoreEventsAtEndOfVideo: true })
+        joinPreExistingSessionASAP({
+          sessionID: usedSessionID,
+          brieflyIgnoreEventsAtEndOfVideo: true,
+        })
       })
 
       streamingStatus.hasJoinedSession = true
@@ -93,11 +106,9 @@ export const initializePlugin = async ({ sessionID, brieflyIgnoreEventsAtEndOfVi
 }
 
 export const getCurrentConnectionStatus = (): {
-  isConnected: boolean,
-  sessionID: string | null,
-} => (
-  {
-    isConnected: streamingStatus.hasJoinedSession,
-    sessionID: streamingStatus.sessionID,
-  }
-)
+  isConnected: boolean
+  sessionID: string | null
+} => ({
+  isConnected: streamingStatus.hasJoinedSession,
+  sessionID: streamingStatus.sessionID,
+})

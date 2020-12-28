@@ -1,11 +1,5 @@
 <template>
-  <a
-    href="#"
-    class="gear"
-    @click="openOptions"
-  >
-    ⚙
-  </a>
+  <a href="#" class="gear" @click="openOptions"> ⚙ </a>
 </template>
 
 <script lang="ts">

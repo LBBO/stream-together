@@ -9,9 +9,11 @@ import { checkSession } from './routes/checkSession'
 
 dotenv.config()
 const app = express_ws(express()).app
-app.use(express.json({
-  inflate: false,
-}))
+app.use(
+  express.json({
+    inflate: false,
+  }),
+)
 app.use(morgan('common'))
 
 app.get('/', (req, res) => {
@@ -28,4 +30,6 @@ app.get('/checkSession/:sessionID', checkSession(sessions))
 
 app.ws('/sessionManager/:sessionID', sessionManager(sessions))
 
-app.listen(process.env.PORT || 3000, () => console.info(`Server running on port ${process.env.PORT}`))
+app.listen(process.env.PORT || 3000, () =>
+  console.info(`Server running on port ${process.env.PORT}`),
+)

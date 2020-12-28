@@ -1,6 +1,6 @@
 type CheckSessionMessage = {
-  query: 'checkSession',
-  sessionID: string,
+  query: 'checkSession'
+  sessionID: string
 }
 
 type CreateSessionMessage = {

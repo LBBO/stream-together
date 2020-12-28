@@ -4,11 +4,6 @@
     "module": "CommonJS",
     "outDir": "../../dist/"
   },
-  "include": [
-    "./**/*.ts"
-  ],
-  "exclude": [
-    "./user_interface",
-    "./browser_action"
-  ]
+  "include": ["./**/*.ts"],
+  "exclude": ["./user_interface", "./browser_action"]
 }

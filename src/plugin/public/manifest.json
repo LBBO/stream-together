@@ -10,29 +10,17 @@
   },
   "content_scripts": [
     {
-      "matches": [
-        "<all_urls>"
-      ],
-      "js": [
-        "contentScript.js"
-      ]
+      "matches": ["<all_urls>"],
+      "js": ["contentScript.js"]
     }
   ],
   "background": {
-    "scripts": [
-      "backgroundScript.js"
-    ],
+    "scripts": ["backgroundScript.js"],
     "persistent": false
   },
   "browser_action": {
     "default_title": "Stream Together",
     "default_popup": "index.html#/popup"
   },
-  "permissions": [
-    "http://*/",
-    "ws://*/",
-    "https://*/",
-    "wss://*/",
-    "storage"
-  ]
+  "permissions": ["http://*/", "ws://*/", "https://*/", "wss://*/", "storage"]
 }

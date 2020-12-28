@@ -1,4 +1,7 @@
-export const onElementRemoved = (element: HTMLElement, callback: () => void) => {
+export const onElementRemoved = (
+  element: HTMLElement,
+  callback: () => void,
+) => {
   if (document.body.contains(element)) {
     const observer = new MutationObserver(() => {
       // Node was removed from DOM if parent is null

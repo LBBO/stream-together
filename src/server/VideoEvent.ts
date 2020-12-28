@@ -1,7 +1,7 @@
 export type VideoEvent = {
-  type: string,
+  type: string
   data?: {
-    videoTime?: number,
-    wasPreviouslyPlaying?: boolean,
-  },
+    videoTime?: number
+    wasPreviouslyPlaying?: boolean
+  }
 }
