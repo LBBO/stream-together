@@ -4,10 +4,11 @@ module.exports = {
     es2021: true,
     node: true,
   },
-  'extends': [
+  extends: [
     'eslint:recommended',
     // "plugin:vue/essential",
     'plugin:@typescript-eslint/recommended',
+    'prettier',
   ],
   parserOptions: {
     ecmaVersion: 2020,
@@ -15,22 +16,28 @@ module.exports = {
     sourceType: 'module',
   },
   parser: 'vue-eslint-parser',
-  plugins: [
-    '@typescript-eslint',
-  ],
+  plugins: ['@typescript-eslint', 'prettier'],
   rules: {
     indent: [
-      'error', 2, {
+      'error',
+      2,
+      {
         SwitchCase: 1,
       },
     ],
     'linebreak-style': ['error', 'unix'],
     quotes: [
-      'error', 'single', {
+      'error',
+      'single',
+      {
         allowTemplateLiterals: true,
       },
     ],
     semi: ['error', 'never'],
     'comma-dangle': ['error', 'always-multiline'],
+    '@typescript-eslint/consistent-type-imports': [
+      'warn',
+      { prefer: 'type-imports' },
+    ],
   },
 }

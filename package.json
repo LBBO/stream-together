@@ -11,7 +11,8 @@
     "devUI": "vite --config src/plugin/user_interface/vite.config.ts",
     "buildScriptsAndWrapPlugin": "webpack",
     "watchScriptsAndWrapPlugin": "webpack --watch",
-    "buildPlugin": "npm run buildUI && npm run buildScriptsAndWrapPlugin"
+    "buildPlugin": "npm run buildUI && npm run buildScriptsAndWrapPlugin",
+    "format": "prettier -w ."
   },
   "dependencies": {
     "uuid": "^8.2.0",
@@ -33,6 +34,8 @@
     "copy-webpack-plugin": "^6.1.0",
     "dotenv": "^8.2.0",
     "eslint": "^7.8.1",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-prettier": "^4.0.0",
     "express": "^4.17.1",
     "express-ws": "^4.0.0",
     "json-post-process-webpack-plugin": "^2.0.4",
@@ -70,7 +73,7 @@
     "pre-commit": "lint-staged"
   },
   "lint-staged": {
-    "*.{js,jsx,vue,ts,tsx,scss}": [
+    "*.{js,jsx,vue,ts,tsx,scss,html,md,json,css}": [
       "prettier --write --ignore-unknown",
       "git add"
     ]
