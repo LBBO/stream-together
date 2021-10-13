@@ -1,12 +1,13 @@
 import type { MessageType } from './MessageType'
 import { getOptions } from './user_interface/options'
 
-const noServerUrl = () => new Error('No Server URL found! Please configure a server URL in the plugin options!')
+const noServerUrl = () =>
+  new Error(
+    'No Server URL found! Please configure a server URL in the plugin options!',
+  )
 
 const getBackendURL = async () => {
-  const url = (
-    await getOptions()
-  ).backendURL
+  const url = (await getOptions()).backendURL
 
   if (url === undefined) {
     throw noServerUrl()
@@ -16,7 +17,10 @@ const getBackendURL = async () => {
 }
 
 const getHTTP_URL = async () => (await getBackendURL()).origin + '/'
-const getSocketURL = async () => `${(await getBackendURL()).protocol === 'http' ? 'ws' : 'wss'}://${(await getBackendURL()).host}/`
+const getSocketURL = async () =>
+  `${(await getBackendURL()).protocol === 'http' ? 'ws' : 'wss'}://${
+    (await getBackendURL()).host
+  }/`
 
 const createSession = async () => {
   try {
@@ -36,32 +40,36 @@ const createSession = async () => {
 }
 
 const checkSession = async (sessionID: string) => {
-  const response = await fetch(`${await getHTTP_URL()}checkSession/${sessionID}`)
+  const response = await fetch(
+    `${await getHTTP_URL()}checkSession/${sessionID}`,
+  )
   return response.status === 200
 }
 
-chrome.runtime.onMessage.addListener((message: MessageType, sender, sendResponse) => {
-  const handleMessage = async () => {
-    console.log('Message received:', message)
-    switch (message.query) {
-      case 'createSession':
-        sendResponse(await createSession())
-        break
-      case 'checkSession':
-        sendResponse(await checkSession(message.sessionID))
-        break
-      default:
-        sendResponse({ error: 'Unknown Query' })
-        break
+chrome.runtime.onMessage.addListener(
+  (message: MessageType, sender, sendResponse) => {
+    const handleMessage = async () => {
+      console.log('Message received:', message)
+      switch (message.query) {
+        case 'createSession':
+          sendResponse(await createSession())
+          break
+        case 'checkSession':
+          sendResponse(await checkSession(message.sessionID))
+          break
+        default:
+          sendResponse({ error: 'Unknown Query' })
+          break
+      }
     }
-  }
 
-  handleMessage().catch(console.error)
+    handleMessage().catch(console.error)
 
-  return true
-})
+    return true
+  },
+)
 
-chrome.runtime.onConnect.addListener(port => {
+chrome.runtime.onConnect.addListener((port) => {
   if (port.name === 'stream-together') {
     console.log('Connection established', port)
 
@@ -74,7 +82,9 @@ chrome.runtime.onConnect.addListener(port => {
         socketRef.current.close()
       }
 
-      const ws = new WebSocket(`${await getSocketURL()}sessionManager/${sessionID}`)
+      const ws = new WebSocket(
+        `${await getSocketURL()}sessionManager/${sessionID}`,
+      )
       socketRef.current = ws
 
       ws.onopen = () => {

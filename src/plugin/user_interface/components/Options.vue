@@ -1,9 +1,7 @@
 <template>
   <div class="options-page">
     <h1>Stream Together - Options</h1>
-    <aside class="save-notice">
-      All settings are saved automatically.
-    </aside>
+    <aside class="save-notice">All settings are saved automatically.</aside>
     <OptionsForm />
   </div>
 </template>

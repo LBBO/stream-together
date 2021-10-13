@@ -2,7 +2,9 @@ import { WebsocketRequestHandler } from 'express-ws'
 import { SessionsObject, closeSessionIfViewersLeft } from '../Session'
 import { broadcastEvent, forwardEvent } from './forwardEvent'
 
-export const sessionManager = (sessions: SessionsObject): WebsocketRequestHandler => (ws, req) => {
+export const sessionManager = (
+  sessions: SessionsObject,
+): WebsocketRequestHandler => (ws, req) => {
   const clientIP = req.connection.remoteAddress
   const sessionID = req.params.sessionID
   const session = sessions[sessionID]
@@ -32,9 +34,11 @@ export const sessionManager = (sessions: SessionsObject): WebsocketRequestHandle
       // Only send sync request to first different user; they'll trigger the actual sync
       if (socket !== ws) {
         console.log(`Sending seekRequest to first socket`)
-        socket.send(JSON.stringify({
-          type: 'syncRequest',
-        }))
+        socket.send(
+          JSON.stringify({
+            type: 'syncRequest',
+          }),
+        )
         break
       }
     }
@@ -91,10 +95,12 @@ export const sessionManager = (sessions: SessionsObject): WebsocketRequestHandle
             forwardEvent(messageObj.type, messageObj.data, ws, session)
             break
           default:
-            ws.send(JSON.stringify({
-              type: 'error',
-              message: `Unknown message type ${messageObj.type}`,
-            }))
+            ws.send(
+              JSON.stringify({
+                type: 'error',
+                message: `Unknown message type ${messageObj.type}`,
+              }),
+            )
         }
       }
     } catch (e) {

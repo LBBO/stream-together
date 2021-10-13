@@ -1,8 +1,8 @@
 import { leaveSession, getCurrentConnectionStatus } from './sessionController'
 
 export type BrowserActionRequest = {
-  query: string,
-  sessionID?: string,
+  query: string
+  sessionID?: string
 }
 
 const evaluateMessage = async (

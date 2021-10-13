@@ -2,8 +2,8 @@
 import packageJSON from '../../../package.json'
 
 export type Options = {
-  version: string,
-  backendURL: string,
+  version: string
+  backendURL: string
 }
 
 export const defaultOptions: Options = {
@@ -28,11 +28,12 @@ const getOptionsFromAnything = (input: any): Options => {
     ...defaultOptions,
     ...inputOptions,
   }
-
 }
 
 const getOptionsFromLocalStorage = (): Options => {
-  const localStorageItem = JSON.parse(localStorage.getItem(localStorageKey) ?? 'null') as unknown
+  const localStorageItem = JSON.parse(
+    localStorage.getItem(localStorageKey) ?? 'null',
+  ) as unknown
 
   return getOptionsFromAnything(localStorageItem)
 }
