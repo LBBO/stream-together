@@ -50,11 +50,15 @@ module.exports = {
           action: (currentJSON) => ({
             ...currentJSON,
             version: packageJSON.version,
-            name: currentJSON.name + (process.env.NODE_ENV === 'production' ? '' : ' dev'),
+            name:
+              currentJSON.name +
+              (process.env.NODE_ENV === 'production' ? '' : ' dev'),
             browser_action: {
               ...currentJSON.browser_action,
-              default_title: currentJSON.browser_action.default_title + (process.env.NODE_ENV === 'production' ? '' : ' dev')
-            }
+              default_title:
+                currentJSON.browser_action.default_title +
+                (process.env.NODE_ENV === 'production' ? '' : ' dev'),
+            },
           }),
         },
       ],
@@ -65,7 +69,10 @@ module.exports = {
         { from: pluginDist``, to: pluginDist`` },
 
         { from: pluginSource`public`, to: pluginDist`` },
-        { from: pluginSource`user_interface/assets/icon`, to: pluginDist`assets/icon` },
+        {
+          from: pluginSource`user_interface/assets/icon`,
+          to: pluginDist`assets/icon`,
+        },
       ],
       options: {},
     }),
