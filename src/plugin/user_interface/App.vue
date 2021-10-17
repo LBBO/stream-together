@@ -28,6 +28,10 @@ body {
   }
 }
 
+#app {
+  width: fit-content;
+}
+
 * {
   box-sizing: border-box;
 }
