@@ -47,7 +47,7 @@
     "ts-loader": "^8.0.3",
     "ts-node": "^8.10.2",
     "typescript": "^3.9.6",
-    "vite": "^1.0.0-rc.1",
+    "vite": "^2.9.13",
     "vue-eslint-parser": "^7.1.0",
     "vue-template-compiler": "^2.6.12",
     "webpack": "^4.44.1",
